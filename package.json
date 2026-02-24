@@ -1,7 +1,7 @@
 {
   "name": "lauluapuri",
   "private": true,
-  "version": "2026.02.24.18",
+  "version": "2026.02.24.19",
   "type": "module",
   "scripts": {
     "bump-version": "node scripts/bump-version.js",

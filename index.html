@@ -231,7 +231,7 @@
                 </button>
             </div>
             <div id="analysis-output">
-                <div class="empty-state">Aloita kirjoittamalla vasemmalle.</div>
+                <div class="empty-state">Aloita kirjoittamalla tekstiä editoriin.</div>
             </div>
         </main>
 
@@ -299,7 +299,7 @@
         function update() {
             const lyrics = input.value;
             localStorage.setItem('lauluapuri-draft', lyrics);
-            if (!lyrics.trim()) { output.innerHTML = '<div class="empty-state">Kirjoita jotain nähdäksesi analyysin.</div>'; return; }
+            if (!lyrics.trim()) { output.innerHTML = '<div class="empty-state">Aloita kirjoittamalla tekstiä editoriin.</div>'; return; }
 
             const lines = lyrics.split('\n');
             const sections = [];
