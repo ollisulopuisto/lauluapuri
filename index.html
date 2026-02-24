@@ -73,6 +73,11 @@
             align-items: center;
         }
 
+        .toolbar-actions {
+            display: flex;
+            gap: 10px;
+        }
+
         #song-name {
             flex: 1;
             padding: 12px 16px;
@@ -102,6 +107,7 @@
             white-space: nowrap;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
@@ -309,14 +315,16 @@
 
         @media (max-width: 850px) {
             .container { padding: 10px; }
+            .toolbar-main { flex-direction: column; align-items: stretch; }
+            .toolbar-actions { width: 100%; }
+            .btn { flex: 1; }
+            
             .editor-grid {
                 grid-template-columns: 1fr;
                 grid-template-rows: 1fr 1fr;
                 gap: 8px;
             }
             .editor-side { border-right: none; border-bottom: 1px solid var(--border-color); }
-            .toolbar-main { flex-wrap: wrap; }
-            .btn { flex: 1; }
         }
     </style>
 </head>
@@ -329,8 +337,10 @@
         <div class="toolbar">
             <div class="toolbar-main">
                 <input type="text" id="song-name" placeholder="Laulun nimi...">
-                <button class="btn btn-save" id="btn-save">Tallenna</button>
-                <button class="btn btn-download" id="btn-download">Lataa .txt</button>
+                <div class="toolbar-actions">
+                    <button class="btn btn-save" id="btn-save">Tallenna</button>
+                    <button class="btn btn-download" id="btn-download">Lataa .txt</button>
+                </div>
             </div>
             <div class="archive-section">
                 <span class="archive-label">Arkisto</span>
