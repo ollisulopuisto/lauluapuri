@@ -2,7 +2,7 @@
 <html lang="fi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Lauluapuri</title>
     <style>
         :root {
@@ -25,51 +25,62 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             line-height: 1.5;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 15px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden; /* Estää koko sivun skrollauksen */
         }
 
         header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 15px;
+            flex-shrink: 0;
         }
 
-        h1 { font-size: 2rem; margin-bottom: 5px; font-weight: 700; }
-        .subtitle { color: var(--muted-color); font-size: 1rem; }
+        h1 { font-size: 1.8rem; margin: 0; font-weight: 700; }
+        .subtitle { color: var(--muted-color); font-size: 0.9rem; margin-top: 5px; }
 
         .toolbar {
             background: var(--card-bg);
-            padding: 15px 20px;
+            padding: 10px 15px;
             border-radius: 12px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             display: flex;
-            gap: 15px;
+            gap: 10px;
             align-items: center;
             flex-wrap: wrap;
             box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+            flex-shrink: 0;
         }
 
         .toolbar input {
             padding: 8px 12px;
             border: 1px solid var(--border-color);
             border-radius: 6px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             flex: 1;
-            min-width: 200px;
+            min-width: 150px;
         }
 
         .btn {
-            padding: 8px 16px;
+            padding: 8px 12px;
             border-radius: 6px;
             border: none;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 600;
             cursor: pointer;
             transition: opacity 0.2s;
+            white-space: nowrap;
         }
 
         .btn:hover { opacity: 0.8; }
@@ -78,20 +89,21 @@
 
         .archive-list {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             overflow-x: auto;
             padding-bottom: 5px;
             width: 100%;
+            scrollbar-width: thin;
         }
 
         .archive-item {
             background: var(--accent-bg);
-            padding: 4px 10px;
+            padding: 3px 8px;
             border-radius: 4px;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             white-space: nowrap;
         }
 
@@ -101,18 +113,18 @@
         .editor-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 30px;
+            gap: 20px;
             background: var(--card-bg);
-            padding: 20px;
+            padding: 15px;
             border-radius: 18px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-            min-height: 600px;
+            flex: 1;
+            overflow: hidden; /* Tärkeä split-view:lle */
         }
 
         #lyrics-input {
             width: 100%;
             height: 100%;
-            min-height: 500px;
             border: none;
             border-right: 1px solid var(--border-color);
             padding: 10px;
@@ -121,136 +133,122 @@
             resize: none;
             outline: none;
             font-family: 'Georgia', serif;
+            overflow-y: auto;
         }
 
         #analysis-output {
             padding: 10px;
             overflow-y: auto;
+            height: 100%;
         }
 
         .section-container {
-            margin-bottom: 40px;
-            border-left: 4px solid var(--border-color);
-            padding-left: 20px;
+            margin-bottom: 30px;
+            border-left: 3px solid var(--border-color);
+            padding-left: 15px;
         }
 
         .section-header {
             display: flex;
             justify-content: space-between;
             align-items: baseline;
-            margin-bottom: 15px;
-            padding-bottom: 5px;
+            margin-bottom: 12px;
+            padding-bottom: 4px;
             border-bottom: 2px solid var(--border-color);
         }
 
         .section-name {
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 800;
             color: var(--text-color);
             text-transform: uppercase;
-            letter-spacing: 1px;
         }
 
         .section-stats {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--muted-color);
-            font-weight: 500;
+            display: flex;
+            gap: 6px;
+        }
+
+        .mismatch-badge {
+            background: #fff2f2;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-size: 0.6rem;
+        }
+
+        .analyzed-line {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .line-meta {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--meta-color);
+            margin-bottom: 4px;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .mismatch-badge {
-            background-color: #fff2f2;
-            color: var(--primary-color);
-            border: 1px solid var(--primary-color);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.65rem;
-            font-weight: bold;
-        }
-
-        .analyzed-line {
-            margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .line-meta {
-            font-size: 0.75rem;
-            color: var(--meta-color);
-            font-weight: 600;
-            margin-bottom: 6px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
         .rhyme-badge {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            color: white;
-            text-align: center;
-            line-height: 20px;
-            font-size: 0.7rem;
-            font-weight: bold;
+            width: 18px; height: 18px; border-radius: 50%;
+            color: white; text-align: center; line-height: 18px;
+            font-size: 0.65rem; font-weight: bold;
         }
 
         .line-viz {
-            font-family: monospace;
-            font-size: 1.2rem;
-            letter-spacing: 3px;
-            margin-bottom: 6px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 3px;
+            font-family: monospace; font-size: 1.1rem;
+            letter-spacing: 2px; margin-bottom: 4px;
+            display: flex; flex-wrap: wrap; gap: 2px;
         }
 
-        .syllable {
-            padding: 1px 3px;
-            border-radius: 3px;
-            border-bottom: 2px solid transparent;
-        }
+        .syllable { padding: 0 2px; border-bottom: 2px solid transparent; }
+        .syllable.primary { background: rgba(215, 0, 0, 0.05); color: var(--primary-color); border-bottom-color: var(--primary-color); }
+        .syllable.secondary { background: rgba(255, 149, 0, 0.05); color: var(--secondary-color); border-bottom-color: var(--secondary-color); }
+        .syllable.none { color: var(--muted-color); }
 
-        .syllable.primary {
-            background-color: rgba(215, 0, 0, 0.08);
-            color: var(--primary-color);
-            border-bottom-color: var(--primary-color);
-        }
+        .line-text { font-size: 0.8rem; color: var(--muted-color); font-style: italic; }
 
-        .syllable.secondary {
-            background-color: rgba(255, 149, 0, 0.08);
-            color: var(--secondary-color);
-            border-bottom-color: var(--secondary-color);
-        }
-
-        .syllable.none {
-            color: var(--muted-color);
-        }
-
-        .line-text {
-            font-size: 0.85rem;
-            color: var(--muted-color);
-            font-style: italic;
-        }
-
-        .empty-state {
-            color: var(--muted-color);
-            text-align: center;
-            margin-top: 100px;
-        }
+        .empty-state { color: var(--muted-color); text-align: center; margin-top: 50px; }
 
         footer {
             text-align: center;
-            margin-top: 30px;
+            padding: 10px;
             color: var(--muted-color);
-            font-size: 0.8rem;
+            font-size: 0.75rem;
+            flex-shrink: 0;
         }
 
+        /* --- MOBIILIOPTIMOINTI --- */
         @media (max-width: 850px) {
-            .editor-grid { grid-template-columns: 1fr; }
-            #lyrics-input { border-right: none; border-bottom: 1px solid var(--border-color); height: 300px; }
+            .container { padding: 10px; }
+            h1 { font-size: 1.5rem; }
+            
+            .editor-grid {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr 1fr; /* Puoliksi kahtia korkeussuunnassa */
+                gap: 10px;
+                padding: 10px;
+            }
+
+            #lyrics-input {
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                padding-bottom: 15px;
+            }
+
+            #analysis-output {
+                padding-top: 15px;
+            }
+
+            .toolbar { gap: 8px; padding: 10px; }
+            .btn { padding: 6px 10px; font-size: 0.8rem; }
         }
     </style>
 </head>
@@ -263,23 +261,21 @@
 
         <div class="toolbar">
             <input type="text" id="song-name" placeholder="Laulun nimi...">
-            <button class="btn btn-primary" id="btn-save">Tallenna arkistoon</button>
-            <button class="btn btn-secondary" id="btn-new">Uusi teksti</button>
-            <div class="archive-list" id="archive-list">
-                <!-- Tallennukset tulevat tähän -->
-            </div>
+            <button class="btn btn-primary" id="btn-save">Tallenna</button>
+            <button class="btn btn-secondary" id="btn-new">Uusi</button>
+            <div class="archive-list" id="archive-list"></div>
         </div>
 
         <main class="editor-grid">
-            <textarea id="lyrics-input" placeholder="Kirjoita tähän...&#10;&#10;Esim:&#10;# Säkeistö&#10;Kultaista on rannalla&#10;Sulla kaunis kannalla" spellcheck="false"></textarea>
+            <textarea id="lyrics-input" placeholder="Kirjoita tähän...&#10;&#10;# Säkeistö&#10;Kultaista on rannalla&#10;Sulla kaunis kannalla" spellcheck="false"></textarea>
             <div id="analysis-output">
                 <div class="empty-state">Aloita kirjoittamalla vasemmalle.</div>
             </div>
         </main>
 
         <footer>
-            <p>Tavut: [!] painollinen, (·) sivupainollinen | — pitkä, ◡ lyhyt</p>
-            <p id="version-display" style="opacity: 0.5; margin-top: 10px;"></p>
+            <p>! paino, · sivupaino | — pitkä, ◡ lyhyt</p>
+            <p id="version-display" style="opacity: 0.5; margin-top: 5px;"></p>
         </footer>
     </div>
 
@@ -287,7 +283,6 @@
         // --- LINGVISTINEN LOGIIKKA ---
         const VOWELS = 'aeiouyäö';
         const DIPHTHONGS = ['ai', 'ei', 'oi', 'ui', 'yi', 'äi', 'öi', 'au', 'eu', 'iu', 'ou', 'ie', 'uo', 'yö', 'ey', 'iy', 'äy', 'öy'];
-
         const isVowel = (c) => c ? VOWELS.includes(c.toLowerCase()) : false;
 
         function syllabify(word) {
@@ -295,30 +290,19 @@
             const chars = word.toLowerCase().replace(/[^a-zäö]/g, '').split('');
             const syllables = [];
             let current = '';
-
             for (let i = 0; i < chars.length; i++) {
                 current += chars[i];
                 const next = chars[i + 1];
                 if (!next) break;
-
                 if (isVowel(chars[i])) {
                     let nextVowelIdx = -1;
-                    for (let j = i + 1; j < chars.length; j++) {
-                        if (isVowel(chars[j])) { nextVowelIdx = j; break; }
-                    }
+                    for (let j = i + 1; j < chars.length; j++) { if (isVowel(chars[j])) { nextVowelIdx = j; break; } }
                     if (nextVowelIdx !== -1 && nextVowelIdx === i + 1) {
                         const pair = chars[i] + chars[nextVowelIdx];
-                        if (chars[i] !== chars[nextVowelIdx] && !DIPHTHONGS.includes(pair)) {
-                            syllables.push(current);
-                            current = '';
-                        }
+                        if (chars[i] !== chars[nextVowelIdx] && !DIPHTHONGS.includes(pair)) { syllables.push(current); current = ''; }
                     }
                 } else if (isVowel(next) && current.length > 1) {
-                    if (current.split('').some(isVowel)) {
-                        const last = current.slice(-1);
-                        syllables.push(current.slice(0, -1));
-                        current = last;
-                    }
+                    if (current.split('').some(isVowel)) { const last = current.slice(-1); syllables.push(current.slice(0, -1)); current = last; }
                 }
             }
             if (current) syllables.push(current);
@@ -327,8 +311,7 @@
 
         function isLong(syllable) {
             const v = syllable.toLowerCase().split('').filter(isVowel);
-            if (v.length === 0) return false;
-            return !isVowel(syllable.slice(-1)) || v.length >= 2;
+            return v.length > 0 && (!isVowel(syllable.slice(-1)) || v.length >= 2);
         }
 
         function getStress(syllables) {
@@ -349,10 +332,7 @@
                 if (i < len) {
                     if (s1 === s2) score++;
                     else { if (score > 0) return score; if (i === 1 && getRhymePart(s1) === getRhymePart(s2)) score++; else return 0; }
-                } else {
-                    if (getRhymePart(s1) === getRhymePart(s2)) score++;
-                    else return score;
-                }
+                } else { if (getRhymePart(s1) === getRhymePart(s2)) score++; else return score; }
             }
             return score;
         }
@@ -368,12 +348,8 @@
 
         function update() {
             const lyrics = input.value;
-            localStorage.setItem('lauluapuri-draft', lyrics); // Auto-save luonnos
-            
-            if (!lyrics.trim()) {
-                output.innerHTML = '<div class="empty-state">Aloita kirjoittamalla vasemmalle.</div>';
-                return;
-            }
+            localStorage.setItem('lauluapuri-draft', lyrics);
+            if (!lyrics.trim()) { output.innerHTML = '<div class="empty-state">Kirjoita jotain nähdäksesi analyysin.</div>'; return; }
 
             const lines = lyrics.split('\n');
             const sections = [];
@@ -389,24 +365,18 @@
                     currentSection = { name: trimmed.replace(/^#+\s*/, ''), lines: [], totalSyllables: 0 };
                     return;
                 }
-
                 const words = trimmed.split(/\s+/).filter(Boolean);
                 const lastWord = words.length > 0 ? words[words.length - 1].toLowerCase().replace(/[^a-zäö]/gi, '') : '';
                 const lineSyllables = [];
                 const wordSyllableLists = [];
-
                 words.forEach(word => {
                     const wordSyllables = syllabify(word);
                     wordSyllableLists.push(wordSyllables);
                     const stresses = getStress(wordSyllables);
-                    wordSyllables.forEach((s, i) => {
-                        lineSyllables.push({ text: s, isLong: isLong(s), stress: stresses[i] });
-                    });
+                    wordSyllables.forEach((s, i) => lineSyllables.push({ text: s, isLong: isLong(s), stress: stresses[i] }));
                 });
-
                 const currentLastSyls = wordSyllableLists[wordSyllableLists.length - 1] || [];
                 let group = null, score = 0;
-
                 if (lastWord) {
                     for (const [prevWord, gid] of rhymeGroups.entries()) {
                         const s = getRhymeScore(currentLastSyls, syllabify(prevWord));
@@ -429,12 +399,8 @@
                     }
                     if (group) rhymeGroups.set(lastWord, group);
                 }
-
                 const analyzedLine = { syllables: lineSyllables, count: lineSyllables.length, lastWord, group, score, lastSyllables: currentLastSyls };
-                if (trimmed || lineText === '') {
-                    currentSection.lines.push(analyzedLine);
-                    currentSection.totalSyllables += analyzedLine.count;
-                }
+                if (trimmed || lineText === '') { currentSection.lines.push(analyzedLine); currentSection.totalSyllables += analyzedLine.count; }
             });
             sections.push(currentSection);
 
@@ -454,21 +420,18 @@
                 }
                 return `
                 <div class="section-container">
-                    ${section.name ? `<div class="section-header"><span class="section-name">${section.name}</span><span class="section-stats">${lineCount} riviä, ${section.totalSyllables} tavua ${mismatchMsg ? `<span class="mismatch-badge" title="${mismatchMsg}">⚠️ Rakenne</span>` : ''}</span></div>` : ''}
+                    ${section.name ? `<div class="section-header"><span class="section-name">${section.name}</span><span class="section-stats">${lineCount} r, ${section.totalSyllables} t ${mismatchMsg ? `<span class="mismatch-badge" title="${mismatchMsg}">⚠️</span>` : ''}</span></div>` : ''}
                     ${section.lines.map(line => {
-                        if (line.syllables.length === 0) return '<div style="height:1.2rem"></div>';
-                        return `
-                        <div class="analyzed-line">
-                            <div class="line-meta"><span>${line.count} tavua</span>${line.group ? `<span class="rhyme-badge" style="background:${colors[(line.group-1)%colors.length]}">${String.fromCharCode(64+(line.group%26))}</span>` : ''}</div>
+                        if (line.syllables.length === 0) return '<div style="height:0.8rem"></div>';
+                        return `<div class="analyzed-line">
+                            <div class="line-meta"><span>${line.count} t</span>${line.group ? `<span class="rhyme-badge" style="background:${colors[(line.group-1)%colors.length]}">${String.fromCharCode(64+(line.group%26))}</span>` : ''}</div>
                             <div class="line-viz">${line.syllables.map((s, sIdx) => {
                                 const isRhyme = line.group && sIdx >= line.syllables.length - line.score;
-                                const style = isRhyme ? `border-bottom: 3px solid ${colors[(line.group-1)%colors.length]}` : '';
-                                return `<span class="syllable ${s.stress}" style="${style}">${s.isLong ? '—' : '◡'}</span>`;
+                                return `<span class="syllable ${s.stress}" style="${isRhyme ? 'border-bottom-color:'+colors[(line.group-1)%colors.length] : ''}">${s.isLong ? '—' : '◡'}</span>`;
                             }).join('')}</div>
                             <div class="line-text">${line.syllables.map((s, sIdx) => {
                                 const isRhyme = line.group && sIdx >= line.syllables.length - line.score;
-                                const color = isRhyme ? colors[(line.group-1)%colors.length] : 'inherit';
-                                return `<span style="color:${color}; font-weight:${isRhyme ? 'bold' : 'normal'}">${s.text}</span>`;
+                                return `<span style="color:${isRhyme ? colors[(line.group-1)%colors.length] : 'inherit'}; font-weight:${isRhyme ? 'bold' : 'normal'}">${s.text}</span>`;
                             }).join('-')}</div>
                         </div>`;
                     }).join('')}
@@ -477,71 +440,25 @@
         }
 
         // TALLENNUS-LOGIIKKA
-        function getArchive() {
-            return JSON.parse(localStorage.getItem('lauluapuri-archive') || '{}');
-        }
-
-        function saveToArchive() {
+        const getArchive = () => JSON.parse(localStorage.getItem('lauluapuri-archive') || '{}');
+        const saveToArchive = () => {
             const name = songNameInput.value.trim();
-            if (!name) { alert('Anna laululle nimi!'); return; }
-            const archive = getArchive();
-            archive[name] = input.value;
-            localStorage.setItem('lauluapuri-archive', JSON.stringify(archive));
-            renderArchive();
-        }
+            if (!name) return alert('Anna nimi!');
+            const archive = getArchive(); archive[name] = input.value;
+            localStorage.setItem('lauluapuri-archive', JSON.stringify(archive)); renderArchive();
+        };
+        const loadFromArchive = (name) => { const archive = getArchive(); if (archive[name]) { input.value = archive[name]; songNameInput.value = name; update(); } };
+        const deleteFromArchive = (name, e) => { e.stopPropagation(); if (confirm(`Poistetaanko "${name}"?`)) { const archive = getArchive(); delete archive[name]; localStorage.setItem('lauluapuri-archive', JSON.stringify(archive)); renderArchive(); } };
+        const renderArchive = () => { const archive = getArchive(); archiveList.innerHTML = Object.keys(archive).map(name => `<div class="archive-item"><span onclick="window.loadSong('${name}')">${name}</span><div class="delete" onclick="window.deleteSong('${name}', event)">×</div></div>`).join(''); };
 
-        function loadFromArchive(name) {
-            const archive = getArchive();
-            if (archive[name]) {
-                input.value = archive[name];
-                songNameInput.value = name;
-                update();
-            }
-        }
-
-        function deleteFromArchive(name, e) {
-            e.stopPropagation();
-            if (!confirm(`Poistetaanko "${name}"?`)) return;
-            const archive = getArchive();
-            delete archive[name];
-            localStorage.setItem('lauluapuri-archive', JSON.stringify(archive));
-            renderArchive();
-        }
-
-        function renderArchive() {
-            const archive = getArchive();
-            const names = Object.keys(archive);
-            archiveList.innerHTML = names.map(name => `
-                <div class="archive-item">
-                    <span onclick="window.loadSong('${name}')">${name}</span>
-                    <div class="delete" onclick="window.deleteSong('${name}', event)">×</div>
-                </div>
-            `).join('');
-        }
-
-        // Globaalit funktiot HTML-clikkauksille
-        window.loadSong = loadFromArchive;
-        window.deleteSong = deleteFromArchive;
-
+        window.loadSong = loadFromArchive; window.deleteSong = deleteFromArchive;
         input.addEventListener('input', update);
         btnSave.addEventListener('click', saveToArchive);
-        btnNew.addEventListener('click', () => {
-            if (confirm('Tyhjennetäänkö editori?')) {
-                input.value = '';
-                songNameInput.value = '';
-                update();
-            }
-        });
+        btnNew.addEventListener('click', () => { if (confirm('Tyhjennetäänkö?')) { input.value = ''; songNameInput.value = ''; update(); } });
 
-        // Alustus
-        const draft = localStorage.getItem('lauluapuri-draft');
-        if (draft) input.value = draft;
-        update();
-        renderArchive();
-        
-        fetch('./package.json').then(r => r.json()).then(pkg => {
-            document.getElementById('version-display').innerText = 'v' + pkg.version;
-        }).catch(() => {});
+        const draft = localStorage.getItem('lauluapuri-draft'); if (draft) input.value = draft;
+        update(); renderArchive();
+        fetch('./package.json').then(r => r.json()).then(pkg => { document.getElementById('version-display').innerText = 'v' + pkg.version; }).catch(() => {});
     </script>
 </body>
 </html>
