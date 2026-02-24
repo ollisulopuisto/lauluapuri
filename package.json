@@ -1,11 +1,12 @@
 {
   "name": "lauluapuri",
   "private": true,
-  "version": "0.0.0",
+  "version": "2026.02.24.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "test": "vitest",
+    "bump-version": "node scripts/bump-version.js",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
