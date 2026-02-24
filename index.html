@@ -97,6 +97,19 @@
             font-size: 0.8rem;
             color: var(--muted-color);
             font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mismatch-badge {
+            background-color: #fff2f2;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
         }
 
         .analyzed-line {
@@ -310,6 +323,8 @@
             const rhymeGroups = new Map();
             let nextGroupId = 1;
 
+            const sectionStandards = new Map(); // name -> { lineCount, totalSyllables }
+
             lines.forEach((lineText) => {
                 const trimmed = lineText.trim();
                 
@@ -401,12 +416,32 @@
             });
             sections.push(currentSection);
 
-            output.innerHTML = sections.map(section => `
+            output.innerHTML = sections.map(section => {
+                const activeLines = section.lines.filter(l => l.syllables.length > 0);
+                const lineCount = activeLines.length;
+                let mismatchMsg = "";
+
+                if (section.name) {
+                    const std = sectionStandards.get(section.name);
+                    if (!std) {
+                        sectionStandards.set(section.name, { lineCount, totalSyllables: section.totalSyllables });
+                    } else {
+                        const diffs = [];
+                        if (std.lineCount !== lineCount) diffs.push(`${lineCount} vs ${std.lineCount} riviä`);
+                        if (std.totalSyllables !== section.totalSyllables) diffs.push(`${section.totalSyllables} vs ${std.totalSyllables} tavua`);
+                        if (diffs.length > 0) mismatchMsg = `Epätasapaino: ${diffs.join(', ')}`;
+                    }
+                }
+
+                return `
                 <div class="section-container">
                     ${section.name ? `
                         <div class="section-header">
                             <span class="section-name">${section.name}</span>
-                            <span class="section-stats">${section.lines.filter(l => l.syllables.length > 0).length} riviä, ${section.totalSyllables} tavua</span>
+                            <span class="section-stats">
+                                ${lineCount} riviä, ${section.totalSyllables} tavua
+                                ${mismatchMsg ? `<span class="mismatch-badge" title="${mismatchMsg}">⚠️ Rakenne-ero</span>` : ''}
+                            </span>
                         </div>
                     ` : ''}
                     ${section.lines.map(line => {
@@ -433,7 +468,7 @@
                         </div>
                     `}).join('')}
                 </div>
-            `).join('');
+            `;}).join('');
         }
 
         input.addEventListener('input', update);
