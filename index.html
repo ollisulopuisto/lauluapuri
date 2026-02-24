@@ -31,7 +31,7 @@
             display: flex;
             flex-direction: column;
             -webkit-font-smoothing: antialiased;
-            transition: padding 0.3s ease;
+            overflow: hidden;
         }
 
         .container {
@@ -43,341 +43,160 @@
             flex-direction: column;
             flex: 1;
             overflow: hidden;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 15px;
-            flex-shrink: 0;
-            transition: all 0.3s ease-in-out;
-            max-height: 100px;
-            opacity: 1;
-            overflow: hidden;
             position: relative;
         }
 
-        body.header-collapsed header {
-            max-height: 0;
-            margin-bottom: 0;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        h1 { 
-            font-size: 1.8rem; 
-            margin: 0; 
-            font-weight: 800; 
-            letter-spacing: -0.02em;
-            color: #1a1b1e;
-        }
-
-        /* --- TOOLBAR --- */
-        .toolbar {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 15px;
+        /* --- COLLAPSIBLE TOP AREA --- */
+        .top-area {
+            transition: all 0.3s ease-in-out;
+            max-height: 500px;
+            opacity: 1;
             flex-shrink: 0;
         }
 
-        .toolbar-main {
-            display: flex;
-            gap: 10px;
-            align-items: center;
+        body.ui-collapsed .top-area {
+            max-height: 0;
+            margin: 0;
+            padding: 0;
+            opacity: 0;
+            pointer-events: none;
+            overflow: hidden;
         }
 
-        .toolbar-actions {
-            display: flex;
-            gap: 10px;
-        }
+        header { text-align: center; margin-bottom: 15px; }
+        h1 { font-size: 1.8rem; margin: 0; font-weight: 800; letter-spacing: -0.02em; }
+
+        .toolbar { display: flex; flex-direction: column; gap: 12px; margin-bottom: 15px; }
+        .toolbar-main { display: flex; gap: 10px; align-items: center; }
+        .toolbar-actions { display: flex; gap: 10px; }
 
         #song-name {
-            flex: 1;
-            padding: 12px 16px;
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            background: white;
-            transition: all 0.2s;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-        }
-
-        #song-name:focus {
-            outline: none;
-            border-color: var(--action-color);
-            box-shadow: 0 0 0 4px rgba(28, 126, 214, 0.1);
+            flex: 1; padding: 12px 16px; border: 2px solid var(--border-color);
+            border-radius: 12px; font-size: 1rem; font-weight: 600; background: white;
         }
 
         .btn {
-            padding: 12px 20px;
-            border-radius: 12px;
-            border: none;
-            font-size: 0.9rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s;
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            padding: 12px 20px; border-radius: 12px; border: none; font-size: 0.9rem;
+            font-weight: 700; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        .btn:active { transform: scale(0.96); }
         .btn-save { background: var(--success-color); color: white; }
-        .btn-save:hover { background: #237031; transform: translateY(-1px); }
-        
         .btn-download { background: var(--action-color); color: white; }
-        .btn-download:hover { background: #1864ab; transform: translateY(-1px); }
 
-        .btn-toggle-header {
-            background: var(--accent-bg);
-            color: var(--muted-color);
-            padding: 12px;
-            width: 44px;
-            border-radius: 12px;
-            box-shadow: none;
-        }
-
-        .btn-toggle-header svg {
-            transition: transform 0.3s ease;
-        }
-
-        body.header-collapsed .btn-toggle-header svg {
-            transform: rotate(180deg);
-        }
-
-        .archive-section {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: rgba(0,0,0,0.02);
-            padding: 8px 12px;
-            border-radius: 10px;
-        }
-
-        .archive-label {
-            font-size: 0.7rem;
-            font-weight: 800;
-            color: var(--muted-color);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .archive-list {
-            display: flex;
-            gap: 8px;
-            overflow-x: auto;
-            flex: 1;
-            scrollbar-width: none;
-        }
-        .archive-list::-webkit-scrollbar { display: none; }
-
-        .archive-item {
-            background: white;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            white-space: nowrap;
-            border: 1px solid var(--border-color);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .archive-item:hover { border-color: var(--action-color); background: var(--accent-bg); }
-        .archive-item .delete { color: #ff6b6b; font-weight: 800; padding-left: 4px; }
-
-        /* --- EDITOR --- */
-        .editor-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            background: var(--card-bg);
-            padding: 8px;
-            border-radius: 20px;
-            box-shadow: var(--shadow);
-            flex: 1;
-            overflow: hidden;
-            border: 1px solid rgba(0,0,0,0.02);
-        }
-
-        .editor-side {
-            position: relative;
-            height: 100%;
-            border-right: 1px solid var(--border-color);
-        }
-
-        #lyrics-input {
-            width: 100%;
-            height: 100%;
-            border: none;
-            padding: 20px;
-            font-size: 1.1rem;
-            line-height: 1.7;
-            resize: none;
-            outline: none;
-            font-family: "Charter", "Georgia", serif;
-            color: #343a40;
-            background: transparent;
-        }
-
-        .floating-copy {
-            position: absolute;
+        /* --- FLOATING TOGGLE --- */
+        .floating-toggle {
+            position: fixed;
             top: 10px;
-            right: 10px;
+            left: 10px;
+            z-index: 100;
             background: white;
             border: 1px solid var(--border-color);
-            cursor: pointer;
             padding: 8px;
-            border-radius: 8px;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: var(--shadow);
             color: var(--muted-color);
-            transition: all 0.2s;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            z-index: 10;
+            transition: all 0.2s;
         }
 
-        .floating-copy:hover {
-            color: var(--action-color);
-            border-color: var(--action-color);
-            background: var(--accent-bg);
+        .floating-toggle:hover { color: var(--action-color); border-color: var(--action-color); }
+        
+        body.ui-collapsed .floating-toggle { opacity: 0.6; }
+        body.ui-collapsed .floating-toggle:hover { opacity: 1; }
+        
+        .floating-toggle svg { transition: transform 0.3s ease; }
+        body.ui-collapsed .floating-toggle svg { transform: rotate(180deg); }
+
+        .archive-section {
+            display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.02);
+            padding: 8px 12px; border-radius: 10px;
+        }
+        .archive-label { font-size: 0.7rem; font-weight: 800; color: var(--muted-color); text-transform: uppercase; }
+        .archive-list { display: flex; gap: 8px; overflow-x: auto; flex: 1; scrollbar-width: none; }
+        .archive-item {
+            background: white; padding: 5px 12px; border-radius: 20px; font-size: 0.75rem;
+            display: flex; align-items: center; gap: 6px; white-space: nowrap; border: 1px solid var(--border-color); cursor: pointer;
+        }
+        .archive-item .delete { color: #ff6b6b; font-weight: 800; }
+
+        /* --- EDITOR --- */
+        .editor-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 20px; background: var(--card-bg);
+            padding: 8px; border-radius: 20px; box-shadow: var(--shadow); flex: 1; overflow: hidden;
+            border: 1px solid rgba(0,0,0,0.02);
         }
 
-        #analysis-output {
-            padding: 20px;
-            overflow-y: auto;
-            height: 100%;
+        .editor-side { position: relative; height: 100%; border-right: 1px solid var(--border-color); }
+        #lyrics-input {
+            width: 100%; height: 100%; border: none; padding: 20px; font-size: 1.1rem;
+            line-height: 1.7; resize: none; outline: none; font-family: "Charter", "Georgia", serif;
+            color: #343a40; background: transparent;
         }
 
-        .section-container {
-            margin-bottom: 30px;
-            border-left: 3px solid #dee2e6;
-            padding-left: 15px;
+        .floating-copy {
+            position: absolute; top: 10px; right: 10px; background: white; border: 1px solid var(--border-color);
+            cursor: pointer; padding: 8px; border-radius: 8px; color: var(--muted-color);
+            transition: all 0.2s; display: flex; align-items: center; justify-content: center; z-index: 10;
         }
 
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            margin-bottom: 12px;
-            padding-bottom: 4px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .section-name {
-            font-size: 0.85rem;
-            font-weight: 800;
-            color: #495057;
-            text-transform: uppercase;
-        }
-
-        .section-stats {
-            font-size: 0.7rem;
-            color: var(--muted-color);
-            font-weight: 600;
-            display: flex;
-            gap: 6px;
-        }
-
-        .mismatch-badge {
-            background: #fff5f5;
-            color: #fa5252;
-            border: 1px solid #ffc9c9;
-            padding: 1px 4px;
-            border-radius: 4px;
-            font-size: 0.6rem;
-        }
-
-        .analyzed-line {
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #f8f9fa;
-        }
-
-        .line-meta {
-            font-size: 0.65rem;
-            font-weight: 700;
-            color: var(--meta-color);
-            margin-bottom: 4px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .rhyme-badge {
-            width: 16px; height: 16px; border-radius: 4px;
-            color: white; text-align: center; line-height: 16px;
-            font-size: 0.6rem; font-weight: 800;
-        }
-
-        .line-viz {
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-            font-size: 1.05rem;
-            letter-spacing: 2px;
-            margin-bottom: 4px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 3px;
-        }
-
+        #analysis-output { padding: 20px; overflow-y: auto; height: 100%; }
+        .section-container { margin-bottom: 30px; border-left: 3px solid #dee2e6; padding-left: 15px; }
+        .section-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; padding-bottom: 4px; border-bottom: 1px solid var(--border-color); }
+        .section-name { font-size: 0.85rem; font-weight: 800; color: #495057; text-transform: uppercase; }
+        .section-stats { font-size: 0.7rem; color: var(--muted-color); font-weight: 600; display: flex; gap: 6px; }
+        .mismatch-badge { background: #fff5f5; color: #fa5252; border: 1px solid #ffc9c9; padding: 1px 4px; border-radius: 4px; font-size: 0.6rem; }
+        .analyzed-line { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #f8f9fa; }
+        .line-meta { font-size: 0.65rem; font-weight: 700; color: var(--meta-color); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .rhyme-badge { width: 16px; height: 16px; border-radius: 4px; color: white; text-align: center; line-height: 16px; font-size: 0.6rem; font-weight: 800; }
+        .line-viz { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 1.05rem; letter-spacing: 2px; margin-bottom: 4px; display: flex; flex-wrap: wrap; gap: 3px; }
         .syllable { padding: 0 1px; border-bottom: 2px solid transparent; }
         .syllable.primary { background: rgba(224, 49, 49, 0.05); color: var(--primary-color); border-bottom-color: var(--primary-color); }
         .syllable.secondary { background: rgba(240, 140, 0, 0.05); color: var(--secondary-color); border-bottom-color: var(--secondary-color); }
         .syllable.none { color: #adb5bd; }
-
         .line-text { font-size: 0.8rem; color: #868e96; font-style: italic; }
-
         .empty-state { color: #adb5bd; text-align: center; margin-top: 80px; font-size: 0.9rem; }
 
-        footer {
-            text-align: center;
-            padding: 10px;
-            color: #adb5bd;
-            font-size: 0.7rem;
-            flex-shrink: 0;
-        }
+        footer { text-align: center; padding: 10px; color: #adb5bd; font-size: 0.7rem; flex-shrink: 0; }
 
         @media (max-width: 850px) {
-            .container { padding: 10px; }
+            .container { padding: 5px; }
             .toolbar-main { flex-direction: column; align-items: stretch; }
-            .toolbar-actions { width: 100%; display: grid; grid-template-columns: 44px 1fr 1fr; gap: 8px; }
-            .btn { flex: 1; padding: 12px 10px; }
-            
-            .editor-grid {
-                grid-template-columns: 1fr;
-                grid-template-rows: 1fr 1fr;
-                gap: 8px;
-            }
+            .toolbar-actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+            .editor-grid { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; gap: 5px; border-radius: 12px; }
             .editor-side { border-right: none; border-bottom: 1px solid var(--border-color); }
+            #lyrics-input { padding: 15px; }
+            #analysis-output { padding: 15px; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Lauluapuri</h1>
-        </header>
+    <button class="floating-toggle" id="ui-toggle" title="Näytä/piilota työkalut">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+    </button>
 
-        <div class="toolbar">
-            <div class="toolbar-main">
-                <input type="text" id="song-name" placeholder="Laulun nimi...">
-                <div class="toolbar-actions">
-                    <button class="btn btn-toggle-header" id="btn-toggle-header" title="Näytä/piilota otsikko">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
-                    </button>
-                    <button class="btn btn-save" id="btn-save">Tallenna</button>
-                    <button class="btn btn-download" id="btn-download">Lataa .txt</button>
+    <div class="container">
+        <div class="top-area">
+            <header>
+                <h1>Lauluapuri</h1>
+            </header>
+
+            <div class="toolbar">
+                <div class="toolbar-main">
+                    <input type="text" id="song-name" placeholder="Laulun nimi...">
+                    <div class="toolbar-actions">
+                        <button class="btn btn-save" id="btn-save">Tallenna</button>
+                        <button class="btn btn-download" id="btn-download">Lataa .txt</button>
+                    </div>
                 </div>
-            </div>
-            <div class="archive-section">
-                <span class="archive-label">Arkisto</span>
-                <div class="archive-list" id="archive-list"></div>
+                <div class="archive-section">
+                    <span class="archive-label">Arkisto</span>
+                    <div class="archive-list" id="archive-list"></div>
+                </div>
             </div>
         </div>
 
@@ -385,7 +204,7 @@
             <div class="editor-side">
                 <textarea id="lyrics-input" placeholder="Kirjoita tähän...&#10;&#10;# Säkeistö&#10;Kultaista on rannalla&#10;Sulla kaunis kannalla" spellcheck="false"></textarea>
                 <button class="floating-copy" id="btn-copy" title="Kopioi leikepöydälle">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
                 </button>
             </div>
             <div id="analysis-output">
@@ -451,7 +270,7 @@
         const btnSave = document.getElementById('btn-save');
         const btnCopy = document.getElementById('btn-copy');
         const btnDownload = document.getElementById('btn-download');
-        const btnToggleHeader = document.getElementById('btn-toggle-header');
+        const uiToggle = document.getElementById('ui-toggle');
         const colors = ['#e03131', '#2f9e44', '#1971c2', '#7048e8', '#f08c00', '#ae3ec9'];
 
         function update() {
@@ -563,30 +382,28 @@
         const deleteFromArchive = (name, e) => { e.stopPropagation(); if (confirm(`Poistetaanko "${name}"?`)) { const archive = getArchive(); delete archive[name]; localStorage.setItem('lauluapuri-archive', JSON.stringify(archive)); renderArchive(); } };
         const renderArchive = () => { archiveList.innerHTML = Object.keys(getArchive()).map(name => `<div class="archive-item" onclick="window.loadSong('${name}')"><span>${name}</span><div class="delete" onclick="window.deleteSong('${name}', event)">×</div></div>`).join(''); };
 
-        const copyToClipboard = () => {
+        btnCopy.addEventListener('click', () => {
             navigator.clipboard.writeText(input.value).then(() => {
                 const originalColor = btnCopy.style.color;
                 btnCopy.style.color = 'var(--success-color)';
                 setTimeout(() => btnCopy.style.color = originalColor, 2000);
             });
-        };
+        });
 
-        const downloadTxt = () => {
+        btnDownload.addEventListener('click', () => {
             const name = songNameInput.value.trim() || 'laulu';
             const blob = new Blob([input.value], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a'); a.href = url; a.download = `${name}.txt`; a.click(); URL.revokeObjectURL(url);
-        };
+        });
+
+        uiToggle.addEventListener('click', () => {
+            document.body.classList.toggle('ui-collapsed');
+        });
 
         window.loadSong = loadFromArchive; window.deleteSong = deleteFromArchive;
         input.addEventListener('input', update);
         btnSave.addEventListener('click', saveToArchive);
-        btnCopy.addEventListener('click', copyToClipboard);
-        btnDownload.addEventListener('click', downloadTxt);
-        
-        btnToggleHeader.addEventListener('click', () => {
-            document.body.classList.toggle('header-collapsed');
-        });
 
         const draft = localStorage.getItem('lauluapuri-draft'); if (draft) input.value = draft;
         update(); renderArchive();
