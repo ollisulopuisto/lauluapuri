@@ -86,6 +86,9 @@
         .btn-save { background: var(--success-color); color: white; }
         .btn-download { background: var(--action-color); color: white; }
 
+        /* MOBIILI-TOGGLE (piilossa desktopilla) */
+        .mobile-ui-toggle { display: none; }
+
         .archive-section {
             display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.02);
             padding: 8px 12px; border-radius: 10px;
@@ -140,6 +143,7 @@
 
         footer { text-align: center; padding: 10px; color: var(--muted-color); font-size: 0.7rem; flex-shrink: 0; }
 
+        /* MOBIILI-KOHTAISET TYYLIT */
         @media (max-width: 850px) {
             .container { padding: 5px; }
             .toolbar-main { flex-direction: column; align-items: stretch; }
@@ -148,16 +152,48 @@
             .editor-side { border-right: none; border-bottom: 1px solid var(--border-color); }
             #lyrics-input { padding: 15px; }
             #analysis-output { padding: 15px; }
+
+            /* ZEN-TILAN KYTKIN */
+            .mobile-ui-toggle {
+                display: flex;
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                z-index: 2000;
+                background: var(--action-color);
+                color: white;
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                border: none;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+            }
+
+            body.zen-mode header, 
+            body.zen-mode .toolbar {
+                display: none;
+            }
+            
+            body.zen-mode .container {
+                padding-top: 10px;
+            }
         }
     </style>
 </head>
 <body>
+    <button class="mobile-ui-toggle" id="zen-toggle" title="Zen-tila">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+    </button>
+
     <div class="container">
-        <header>
+        <header id="main-header">
             <h1>Lauluapuri</h1>
         </header>
 
-        <div class="toolbar">
+        <div class="toolbar" id="main-toolbar">
             <div class="toolbar-main">
                 <input type="text" id="song-name" placeholder="Laulun nimi...">
                 <div class="toolbar-actions">
@@ -251,6 +287,7 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
         const btnSave = document.getElementById('btn-save');
         const btnCopy = document.getElementById('btn-copy');
         const btnDownload = document.getElementById('btn-download');
+        const zenToggle = document.getElementById('zen-toggle');
         const colors = ['#ff6b6b', '#51cf66', '#4dabf7', '#845ef7', '#fcc419', '#f06595'];
 
         function update() {
@@ -375,7 +412,17 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
             const blob = new Blob([input.value], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a'); a.href = url; a.download = `${name}.txt`; a.click(); URL.revokeObjectURL(url);
-        };
+        });
+
+        // ZEN-TOGGLE LOGIIKKA (VAIN MOBIILI)
+        zenToggle.addEventListener('click', () => {
+            const isZen = document.body.classList.toggle('zen-mode');
+            localStorage.setItem('lauluapuri-zen', isZen);
+            // Vaihdetaan ikonia
+            zenToggle.innerHTML = isZen 
+                ? '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>'
+                : '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>';
+        });
 
         window.loadSong = loadFromArchive; window.deleteSong = deleteFromArchive;
         input.addEventListener('input', update);
@@ -383,6 +430,13 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
 
         // Alustus
         const draft = localStorage.getItem('lauluapuri-draft'); if (draft) input.value = draft;
+        const zenState = localStorage.getItem('lauluapuri-zen') === 'true';
+        if (zenState && window.innerWidth <= 850) {
+            document.body.classList.add('zen-mode');
+            zenToggle.click(); // Päivittää ikonin (vähän ruma hack mutta toimii)
+            document.body.classList.add('zen-mode'); // Varmistetaan että pysyy päällä clikin jälkeen
+        }
+        
         update(); renderArchive();
         fetch('./package.json').then(r => r.json()).then(pkg => { document.getElementById('version-display').innerText = 'v' + pkg.version; }).catch(() => {});
     </script>
