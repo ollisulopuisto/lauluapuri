@@ -31,6 +31,7 @@
             display: flex;
             flex-direction: column;
             -webkit-font-smoothing: antialiased;
+            transition: padding 0.3s ease;
         }
 
         .container {
@@ -48,6 +49,18 @@
             text-align: center;
             margin-bottom: 15px;
             flex-shrink: 0;
+            transition: all 0.3s ease-in-out;
+            max-height: 100px;
+            opacity: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        body.header-collapsed header {
+            max-height: 0;
+            margin-bottom: 0;
+            opacity: 0;
+            pointer-events: none;
         }
 
         h1 { 
@@ -118,6 +131,23 @@
         
         .btn-download { background: var(--action-color); color: white; }
         .btn-download:hover { background: #1864ab; transform: translateY(-1px); }
+
+        .btn-toggle-header {
+            background: var(--accent-bg);
+            color: var(--muted-color);
+            padding: 12px;
+            width: 44px;
+            border-radius: 12px;
+            box-shadow: none;
+        }
+
+        .btn-toggle-header svg {
+            transition: transform 0.3s ease;
+        }
+
+        body.header-collapsed .btn-toggle-header svg {
+            transform: rotate(180deg);
+        }
 
         .archive-section {
             display: flex;
@@ -316,8 +346,8 @@
         @media (max-width: 850px) {
             .container { padding: 10px; }
             .toolbar-main { flex-direction: column; align-items: stretch; }
-            .toolbar-actions { width: 100%; }
-            .btn { flex: 1; }
+            .toolbar-actions { width: 100%; display: grid; grid-template-columns: 44px 1fr 1fr; gap: 8px; }
+            .btn { flex: 1; padding: 12px 10px; }
             
             .editor-grid {
                 grid-template-columns: 1fr;
@@ -338,6 +368,9 @@
             <div class="toolbar-main">
                 <input type="text" id="song-name" placeholder="Laulun nimi...">
                 <div class="toolbar-actions">
+                    <button class="btn btn-toggle-header" id="btn-toggle-header" title="Näytä/piilota otsikko">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                    </button>
                     <button class="btn btn-save" id="btn-save">Tallenna</button>
                     <button class="btn btn-download" id="btn-download">Lataa .txt</button>
                 </div>
@@ -418,6 +451,7 @@
         const btnSave = document.getElementById('btn-save');
         const btnCopy = document.getElementById('btn-copy');
         const btnDownload = document.getElementById('btn-download');
+        const btnToggleHeader = document.getElementById('btn-toggle-header');
         const colors = ['#e03131', '#2f9e44', '#1971c2', '#7048e8', '#f08c00', '#ae3ec9'];
 
         function update() {
@@ -549,6 +583,10 @@
         btnSave.addEventListener('click', saveToArchive);
         btnCopy.addEventListener('click', copyToClipboard);
         btnDownload.addEventListener('click', downloadTxt);
+        
+        btnToggleHeader.addEventListener('click', () => {
+            document.body.classList.toggle('header-collapsed');
+        });
 
         const draft = localStorage.getItem('lauluapuri-draft'); if (draft) input.value = draft;
         update(); renderArchive();
