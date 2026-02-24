@@ -226,10 +226,18 @@
             return syllables.map((_, i) => i === 0 ? 'primary' : (i % 2 === 0 ? 'secondary' : 'none'));
         }
 
-        function doRhyme(w1, w2) {
-            if (!w1 || !w2) return false;
-            const s1 = syllabify(w1), s2 = syllabify(w2);
-            return s1[s1.length-1] === s2[s2.length-1];
+        function getRhymeScore(syls1, syls2) {
+            if (!syls1.length || !syls2.length) return 0;
+            let score = 0;
+            const len = Math.min(syls1.length, syls2.length);
+            for (let i = 1; i <= len; i++) {
+                if (syls1[syls1.length - i] === syls2[syls2.length - i]) {
+                    score++;
+                } else {
+                    break;
+                }
+            }
+            return score;
         }
 
         // --- UI ---
@@ -246,33 +254,44 @@
 
             const lines = lyrics.split('\n');
             const analyzedLines = [];
-            const rhymeGroups = new Map();
+            const rhymeGroups = new Map(); // lastWord -> groupId
             let nextGroupId = 1;
 
             lines.forEach((lineText, idx) => {
                 const words = lineText.trim().split(/\s+/).filter(Boolean);
-                const lastWord = words.length > 0 ? words[words.length - 1].replace(/[^a-zäö]/gi, '') : '';
-                const syllables = [];
+                const lastWord = words.length > 0 ? words[words.length - 1].toLowerCase().replace(/[^a-zäö]/gi, '') : '';
+                const lineSyllables = [];
+                const wordSyllableLists = [];
 
                 words.forEach(word => {
                     const wordSyllables = syllabify(word);
+                    wordSyllableLists.push(wordSyllables);
                     const stresses = getStress(wordSyllables);
                     wordSyllables.forEach((s, i) => {
-                        syllables.push({ text: s, isLong: isLong(s), stress: stresses[i] });
+                        lineSyllables.push({ text: s, isLong: isLong(s), stress: stresses[i] });
                     });
                 });
 
+                const currentLastSyls = wordSyllableLists[wordSyllableLists.length - 1] || [];
                 let group = null;
+
                 if (lastWord) {
+                    // Etsitään paras riimi aiemmista ryhmistä
                     for (const [prevWord, gid] of rhymeGroups.entries()) {
-                        if (doRhyme(lastWord, prevWord)) { group = gid; break; }
+                        if (getRhymeScore(currentLastSyls, syllabify(prevWord)) >= 1) {
+                            group = gid;
+                            break;
+                        }
                     }
+                    
                     if (!group) {
+                        // Etsitään riimi aiemmista riveistä jotka eivät vielä ole ryhmässä
                         for (let i = 0; i < analyzedLines.length; i++) {
-                            if (analyzedLines[i].lastWord && doRhyme(lastWord, analyzedLines[i].lastWord)) {
+                            const prevLine = analyzedLines[i];
+                            if (prevLine.lastWord && getRhymeScore(currentLastSyls, prevLine.lastSyllables) >= 1) {
                                 group = nextGroupId++;
-                                analyzedLines[i].group = group;
-                                rhymeGroups.set(analyzedLines[i].lastWord, group);
+                                prevLine.group = group;
+                                rhymeGroups.set(prevLine.lastWord, group);
                                 break;
                             }
                         }
@@ -280,21 +299,39 @@
                     if (group) rhymeGroups.set(lastWord, group);
                 }
 
-                analyzedLines.push({ syllables, count: syllables.length, lastWord, group });
+                analyzedLines.push({ 
+                    syllables: lineSyllables, 
+                    count: lineSyllables.length, 
+                    lastWord, 
+                    group,
+                    lastSyllables: currentLastSyls 
+                });
             });
 
-            output.innerHTML = analyzedLines.map(line => `
+            output.innerHTML = analyzedLines.map((line, lIdx) => {
+                const rhymeScore = line.group ? 1 : 0; // Yksinkertaistus UI:lle
+                return `
                 <div class="analyzed-line">
                     <div class="line-meta">
                         <span>${line.count} tavua</span>
                         ${line.group ? `<span class="rhyme-badge" style="background:${colors[(line.group-1)%colors.length]}">${String.fromCharCode(64+(line.group%26))}</span>` : ''}
                     </div>
                     <div class="line-viz">
-                        ${line.syllables.map(s => `<span class="syllable ${s.stress}">${s.isLong ? '—' : '◡'}</span>`).join('')}
+                        ${line.syllables.map((s, sIdx) => {
+                            // Korostetaan riimaavat tavut (viimeinen tavu jos riimaa)
+                            const isRhymingSyllable = line.group && sIdx >= line.syllables.length - 1;
+                            const style = isRhymingSyllable ? `border-bottom: 3px solid ${colors[(line.group-1)%colors.length]}` : '';
+                            return `<span class="syllable ${s.stress}" style="${style}">${s.isLong ? '—' : '◡'}</span>`;
+                        }).join('')}
                     </div>
-                    <div class="line-text">${line.syllables.map(s => s.text).join('-')}</div>
+                    <div class="line-text">${line.syllables.map((s, sIdx) => {
+                        const isRhymingSyllable = line.group && sIdx >= line.syllables.length - 1;
+                        const color = isRhymingSyllable ? colors[(line.group-1)%colors.length] : 'inherit';
+                        const weight = isRhymingSyllable ? 'bold' : 'normal';
+                        return `<span style="color:${color}; font-weight:${weight}">${s.text}</span>`;
+                    }).join('-')}</div>
                 </div>
-            `).join('');
+            `;}).join('');
         }
 
         input.addEventListener('input', update);
