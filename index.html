@@ -1,13 +1,308 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>lauluapuri</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lauluapuri</title>
+    <style>
+        :root {
+            --primary-color: #d70000;
+            --secondary-color: #ff9500;
+            --text-color: #1d1d1f;
+            --bg-color: #f5f5f7;
+            --card-bg: #ffffff;
+            --border-color: #e5e5e5;
+            --meta-color: #0066cc;
+            --muted-color: #86868b;
+        }
+
+        * { box-sizing: border-box; }
+        
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 { font-size: 2.5rem; margin-bottom: 10px; font-weight: 700; }
+        .subtitle { color: var(--muted-color); font-size: 1.1rem; }
+
+        .editor-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 18px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            min-height: 600px;
+        }
+
+        #lyrics-input {
+            width: 100%;
+            height: 100%;
+            min-height: 500px;
+            border: none;
+            border-right: 1px solid var(--border-color);
+            padding: 20px;
+            font-size: 1.2rem;
+            line-height: 1.6;
+            resize: none;
+            outline: none;
+            font-family: 'Georgia', serif;
+        }
+
+        #analysis-output {
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .analyzed-line {
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .line-meta {
+            font-size: 0.8rem;
+            color: var(--meta-color);
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .rhyme-badge {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            color: white;
+            text-align: center;
+            line-height: 22px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .line-viz {
+            font-family: monospace;
+            font-size: 1.4rem;
+            letter-spacing: 4px;
+            margin-bottom: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .syllable {
+            padding: 2px 4px;
+            border-radius: 4px;
+            border-bottom: 3px solid transparent;
+        }
+
+        .syllable.primary {
+            background-color: rgba(215, 0, 0, 0.1);
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .syllable.secondary {
+            background-color: rgba(255, 149, 0, 0.1);
+            color: var(--secondary-color);
+            border-bottom-color: var(--secondary-color);
+        }
+
+        .syllable.none {
+            color: var(--muted-color);
+        }
+
+        .line-text {
+            font-size: 0.9rem;
+            color: var(--muted-color);
+            font-style: italic;
+        }
+
+        .empty-state {
+            color: var(--muted-color);
+            text-align: center;
+            margin-top: 100px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: var(--muted-color);
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 850px) {
+            .editor-grid { grid-template-columns: 1fr; }
+            #lyrics-input { border-right: none; border-bottom: 1px solid var(--border-color); height: 300px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Lauluapuri</h1>
+            <p class="subtitle">Itsenäinen suomenkielinen lyriikka-analyysi</p>
+        </header>
+
+        <main class="editor-grid">
+            <textarea id="lyrics-input" placeholder="Kirjoita tähän...&#10;&#10;Esim:&#10;Kultaista on rannalla&#10;Sulla kaunis kannalla" spellcheck="false"></textarea>
+            <div id="analysis-output">
+                <div class="empty-state">Aloita kirjoittamalla vasemmalle.</div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Tavut: [!] painollinen, (·) sivupainollinen | — pitkä, ◡ lyhyt</p>
+            <p id="version-display" style="opacity: 0.5; margin-top: 10px;"></p>
+        </footer>
+    </div>
+
+    <script type="module">
+        // --- LOGIIKKA ---
+        const VOWELS = 'aeiouyäö';
+        const DIPHTHONGS = ['ai', 'ei', 'oi', 'ui', 'yi', 'äi', 'öi', 'au', 'eu', 'iu', 'ou', 'ie', 'uo', 'yö', 'ey', 'iy', 'äy', 'öy'];
+
+        const isVowel = (c) => c ? VOWELS.includes(c.toLowerCase()) : false;
+
+        function syllabify(word) {
+            if (!word) return [];
+            const chars = word.toLowerCase().replace(/[^a-zäö]/g, '').split('');
+            const syllables = [];
+            let current = '';
+
+            for (let i = 0; i < chars.length; i++) {
+                current += chars[i];
+                const next = chars[i + 1];
+                if (!next) break;
+
+                if (isVowel(chars[i])) {
+                    let nextVowelIdx = -1;
+                    for (let j = i + 1; j < chars.length; j++) {
+                        if (isVowel(chars[j])) { nextVowelIdx = j; break; }
+                    }
+                    if (nextVowelIdx !== -1 && nextVowelIdx === i + 1) {
+                        const pair = chars[i] + chars[nextVowelIdx];
+                        if (chars[i] !== chars[nextVowelIdx] && !DIPHTHONGS.includes(pair)) {
+                            syllables.push(current);
+                            current = '';
+                        }
+                    }
+                } else if (isVowel(next) && current.length > 1) {
+                    if (current.split('').some(isVowel)) {
+                        const last = current.slice(-1);
+                        syllables.push(current.slice(0, -1));
+                        current = last;
+                    }
+                }
+            }
+            if (current) syllables.push(current);
+            return syllables;
+        }
+
+        function isLong(syllable) {
+            const v = syllable.toLowerCase().split('').filter(isVowel);
+            if (v.length === 0) return false;
+            return !isVowel(syllable.slice(-1)) || v.length >= 2;
+        }
+
+        function getStress(syllables) {
+            return syllables.map((_, i) => i === 0 ? 'primary' : (i % 2 === 0 ? 'secondary' : 'none'));
+        }
+
+        function doRhyme(w1, w2) {
+            if (!w1 || !w2) return false;
+            const s1 = syllabify(w1), s2 = syllabify(w2);
+            return s1[s1.length-1] === s2[s2.length-1];
+        }
+
+        // --- UI ---
+        const input = document.getElementById('lyrics-input');
+        const output = document.getElementById('analysis-output');
+        const colors = ['#FF3B30', '#34C759', '#007AFF', '#5856D6', '#FF9500', '#AF52DE'];
+
+        function update() {
+            const lyrics = input.value;
+            if (!lyrics.trim()) {
+                output.innerHTML = '<div class="empty-state">Aloita kirjoittamalla vasemmalle.</div>';
+                return;
+            }
+
+            const lines = lyrics.split('\n');
+            const analyzedLines = [];
+            const rhymeGroups = new Map();
+            let nextGroupId = 1;
+
+            lines.forEach((lineText, idx) => {
+                const words = lineText.trim().split(/\s+/).filter(Boolean);
+                const lastWord = words.length > 0 ? words[words.length - 1].replace(/[^a-zäö]/gi, '') : '';
+                const syllables = [];
+
+                words.forEach(word => {
+                    const wordSyllables = syllabify(word);
+                    const stresses = getStress(wordSyllables);
+                    wordSyllables.forEach((s, i) => {
+                        syllables.push({ text: s, isLong: isLong(s), stress: stresses[i] });
+                    });
+                });
+
+                let group = null;
+                if (lastWord) {
+                    for (const [prevWord, gid] of rhymeGroups.entries()) {
+                        if (doRhyme(lastWord, prevWord)) { group = gid; break; }
+                    }
+                    if (!group) {
+                        for (let i = 0; i < analyzedLines.length; i++) {
+                            if (analyzedLines[i].lastWord && doRhyme(lastWord, analyzedLines[i].lastWord)) {
+                                group = nextGroupId++;
+                                analyzedLines[i].group = group;
+                                rhymeGroups.set(analyzedLines[i].lastWord, group);
+                                break;
+                            }
+                        }
+                    }
+                    if (group) rhymeGroups.set(lastWord, group);
+                }
+
+                analyzedLines.push({ syllables, count: syllables.length, lastWord, group });
+            });
+
+            output.innerHTML = analyzedLines.map(line => `
+                <div class="analyzed-line">
+                    <div class="line-meta">
+                        <span>${line.count} tavua</span>
+                        ${line.group ? `<span class="rhyme-badge" style="background:${colors[(line.group-1)%colors.length]}">${String.fromCharCode(64+(line.group%26))}</span>` : ''}
+                    </div>
+                    <div class="line-viz">
+                        ${line.syllables.map(s => `<span class="syllable ${s.stress}">${s.isLong ? '—' : '◡'}</span>`).join('')}
+                    </div>
+                    <div class="line-text">${line.syllables.map(s => s.text).join('-')}</div>
+                </div>
+            `).join('');
+        }
+
+        input.addEventListener('input', update);
+        
+        // Versiointi (haetaan package.json:sta jos mahdollista, muuten staattinen)
+        fetch('./package.json').then(r => r.json()).then(pkg => {
+            document.getElementById('version-display').innerText = 'v' + pkg.version;
+        }).catch(() => {});
+    </script>
+</body>
 </html>
