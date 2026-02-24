@@ -59,3 +59,8 @@ Sovelluksen lingvistinen moottori on kehitetty Red/Green-testauksella. Testit ka
 - Tavun pituuden määrityksen.
 - Painotuskuviot.
 - Riimien tunnistuslogiikan.
+
+## 📅 Versiointi
+
+Tämä projekti käyttää automaattista kalenteripohjaista versiointia (CalVer). Jokainen commit nostaa versionumeroa muotoon `YYYY.MM.DD.PATCH`.
+
