@@ -70,6 +70,35 @@
             overflow-y: auto;
         }
 
+        .section-container {
+            margin-bottom: 40px;
+            border-left: 4px solid var(--border-color);
+            padding-left: 20px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .section-name {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--text-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .section-stats {
+            font-size: 0.8rem;
+            color: var(--muted-color);
+            font-weight: 500;
+        }
+
         .analyzed-line {
             margin-bottom: 24px;
             padding-bottom: 16px;
@@ -253,12 +282,29 @@
             }
 
             const lines = lyrics.split('\n');
-            const analyzedLines = [];
-            const rhymeGroups = new Map(); // lastWord -> groupId
+            const sections = [];
+            let currentSection = { name: '', lines: [], totalSyllables: 0 };
+            
+            const rhymeGroups = new Map();
             let nextGroupId = 1;
 
-            lines.forEach((lineText, idx) => {
-                const words = lineText.trim().split(/\s+/).filter(Boolean);
+            lines.forEach((lineText) => {
+                const trimmed = lineText.trim();
+                
+                // Osiotunniste (esim. # Säkeistö)
+                if (trimmed.startsWith('#')) {
+                    if (currentSection.lines.length > 0 || currentSection.name) {
+                        sections.push(currentSection);
+                    }
+                    currentSection = { 
+                        name: trimmed.replace(/^#+\s*/, ''), 
+                        lines: [], 
+                        totalSyllables: 0 
+                    };
+                    return;
+                }
+
+                const words = trimmed.split(/\s+/).filter(Boolean);
                 const lastWord = words.length > 0 ? words[words.length - 1].toLowerCase().replace(/[^a-zäö]/gi, '') : '';
                 const lineSyllables = [];
                 const wordSyllableLists = [];
@@ -276,7 +322,6 @@
                 let group = null;
 
                 if (lastWord) {
-                    // Etsitään paras riimi aiemmista ryhmistä
                     for (const [prevWord, gid] of rhymeGroups.entries()) {
                         if (getRhymeScore(currentLastSyls, syllabify(prevWord)) >= 1) {
                             group = gid;
@@ -285,53 +330,81 @@
                     }
                     
                     if (!group) {
-                        // Etsitään riimi aiemmista riveistä jotka eivät vielä ole ryhmässä
-                        for (let i = 0; i < analyzedLines.length; i++) {
-                            const prevLine = analyzedLines[i];
-                            if (prevLine.lastWord && getRhymeScore(currentLastSyls, prevLine.lastSyllables) >= 1) {
-                                group = nextGroupId++;
-                                prevLine.group = group;
-                                rhymeGroups.set(prevLine.lastWord, group);
-                                break;
+                        // Etsitään riimi kaikista aiemmista osioista
+                        for (const s of sections) {
+                            for (const l of s.lines) {
+                                if (l.lastWord && getRhymeScore(currentLastSyls, l.lastSyllables) >= 1) {
+                                    group = nextGroupId++;
+                                    l.group = group;
+                                    rhymeGroups.set(l.lastWord, group);
+                                    break;
+                                }
+                            }
+                            if (group) break;
+                        }
+                        // Etsitään vielä kuluvan osion aiemmista riveistä
+                        if (!group) {
+                            for (const l of currentSection.lines) {
+                                if (l.lastWord && getRhymeScore(currentLastSyls, l.lastSyllables) >= 1) {
+                                    group = nextGroupId++;
+                                    l.group = group;
+                                    rhymeGroups.set(l.lastWord, group);
+                                    break;
+                                }
                             }
                         }
                     }
                     if (group) rhymeGroups.set(lastWord, group);
                 }
 
-                analyzedLines.push({ 
+                const analyzedLine = { 
                     syllables: lineSyllables, 
                     count: lineSyllables.length, 
                     lastWord, 
                     group,
                     lastSyllables: currentLastSyls 
-                });
+                };
+                
+                if (trimmed || lineText === '') { // Säilytetään tyhjät rivit osion sisällä
+                    currentSection.lines.push(analyzedLine);
+                    currentSection.totalSyllables += analyzedLine.count;
+                }
             });
+            sections.push(currentSection);
 
-            output.innerHTML = analyzedLines.map((line, lIdx) => {
-                const rhymeScore = line.group ? 1 : 0; // Yksinkertaistus UI:lle
-                return `
-                <div class="analyzed-line">
-                    <div class="line-meta">
-                        <span>${line.count} tavua</span>
-                        ${line.group ? `<span class="rhyme-badge" style="background:${colors[(line.group-1)%colors.length]}">${String.fromCharCode(64+(line.group%26))}</span>` : ''}
-                    </div>
-                    <div class="line-viz">
-                        ${line.syllables.map((s, sIdx) => {
-                            // Korostetaan riimaavat tavut (viimeinen tavu jos riimaa)
-                            const isRhymingSyllable = line.group && sIdx >= line.syllables.length - 1;
-                            const style = isRhymingSyllable ? `border-bottom: 3px solid ${colors[(line.group-1)%colors.length]}` : '';
-                            return `<span class="syllable ${s.stress}" style="${style}">${s.isLong ? '—' : '◡'}</span>`;
-                        }).join('')}
-                    </div>
-                    <div class="line-text">${line.syllables.map((s, sIdx) => {
-                        const isRhymingSyllable = line.group && sIdx >= line.syllables.length - 1;
-                        const color = isRhymingSyllable ? colors[(line.group-1)%colors.length] : 'inherit';
-                        const weight = isRhymingSyllable ? 'bold' : 'normal';
-                        return `<span style="color:${color}; font-weight:${weight}">${s.text}</span>`;
-                    }).join('-')}</div>
+            output.innerHTML = sections.map(section => `
+                <div class="section-container">
+                    ${section.name ? `
+                        <div class="section-header">
+                            <span class="section-name">${section.name}</span>
+                            <span class="section-stats">${section.lines.filter(l => l.syllables.length > 0).length} riviä, ${section.totalSyllables} tavua</span>
+                        </div>
+                    ` : ''}
+                    ${section.lines.map(line => {
+                        if (line.syllables.length === 0) return '<div style="height:1.2rem"></div>';
+                        return `
+                        <div class="analyzed-line">
+                            <div class="line-meta">
+                                <span>${line.count} tavua</span>
+                                ${line.group ? `<span class="rhyme-badge" style="background:${colors[(line.group-1)%colors.length]}">${String.fromCharCode(64+(line.group%26))}</span>` : ''}
+                            </div>
+                            <div class="line-viz">
+                                ${line.syllables.map((s, sIdx) => {
+                                    const isRhymingSyllable = line.group && sIdx >= line.syllables.length - 1;
+                                    const style = isRhymingSyllable ? `border-bottom: 3px solid ${colors[(line.group-1)%colors.length]}` : '';
+                                    return `<span class="syllable ${s.stress}" style="${style}">${s.isLong ? '—' : '◡'}</span>`;
+                                }).join('')}
+                            </div>
+                            <div class="line-text">${line.syllables.map((s, sIdx) => {
+                                const isRhymingSyllable = line.group && sIdx >= line.syllables.length - 1;
+                                const color = isRhymingSyllable ? colors[(line.group-1)%colors.length] : 'inherit';
+                                const weight = isRhymingSyllable ? 'bold' : 'normal';
+                                return `<span style="color:${color}; font-weight:${weight}">${s.text}</span>`;
+                            }).join('-')}</div>
+                        </div>
+                    `}).join('')}
                 </div>
-            `;}).join('');
+            `).join('');
         }
 
         input.addEventListener('input', update);
