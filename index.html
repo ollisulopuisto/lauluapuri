@@ -488,7 +488,17 @@
             const archive = getArchive(); archive[name] = input.value;
             localStorage.setItem('lauluapuri-archive', JSON.stringify(archive)); renderArchive();
         };
-        const loadFromArchive = (name) => { const archive = getArchive(); if (archive[name]) { input.value = archive[name]; songNameInput.value = name; update(); } };
+        const loadFromArchive = (name) => { 
+            const archive = getArchive(); 
+            if (archive[name]) { 
+                if (input.value.trim() && input.value !== archive[name]) {
+                    if (!confirm('Haluatko varmasti ladata tallennetun tekstin? Nykyinen muokkaamaton tekstisi pyyhitään.')) return;
+                }
+                input.value = archive[name]; 
+                songNameInput.value = name; 
+                update(); 
+            } 
+        };
         const deleteFromArchive = (name, e) => { e.stopPropagation(); if (confirm(`Poistetaanko "${name}"?`)) { const archive = getArchive(); delete archive[name]; localStorage.setItem('lauluapuri-archive', JSON.stringify(archive)); renderArchive(); } };
         const renderArchive = () => { const archive = getArchive(); archiveList.innerHTML = Object.keys(archive).map(name => `<div class="archive-item"><span onclick="window.loadSong('${name}')">${name}</span><div class="delete" onclick="window.deleteSong('${name}', event)">×</div></div>`).join(''); };
 
