@@ -7,12 +7,13 @@
     <style>
         :root {
             --primary-color: #e03131;
-            --secondary-color: #f08c00;
+            --success-color: #2b8a3e;
+            --action-color: #1971c2;
             --text-color: #2c2e33;
             --bg-color: #f8f9fa;
             --card-bg: #ffffff;
             --border-color: #e9ecef;
-            --meta-color: #1971c2;
+            --meta-color: #1c7ed6;
             --muted-color: #868e96;
             --accent-bg: #f1f3f5;
             --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
@@ -35,7 +36,7 @@
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 15px;
             width: 100%;
             display: flex;
             flex-direction: column;
@@ -45,112 +46,150 @@
 
         header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             flex-shrink: 0;
         }
 
         h1 { 
-            font-size: 2rem; 
+            font-size: 1.8rem; 
             margin: 0; 
             font-weight: 800; 
             letter-spacing: -0.02em;
             color: #1a1b1e;
         }
 
+        /* --- TOOLBAR --- */
         .toolbar {
-            background: var(--card-bg);
-            padding: 12px 16px;
-            border-radius: 14px;
-            margin-bottom: 20px;
             display: flex;
+            flex-direction: column;
             gap: 12px;
-            align-items: center;
-            flex-wrap: wrap;
-            box-shadow: var(--shadow);
+            margin-bottom: 15px;
             flex-shrink: 0;
-            border: 1px solid rgba(0,0,0,0.02);
         }
 
-        .toolbar input {
-            padding: 10px 14px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 0.9rem;
-            flex: 2;
-            min-width: 180px;
-            background: var(--bg-color);
-            transition: border-color 0.2s;
-        }
-
-        .toolbar input:focus {
-            outline: none;
-            border-color: var(--meta-color);
-            background: white;
-        }
-
-        .actions-group {
+        .toolbar-main {
             display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .song-input-wrapper {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        #song-name {
+            width: 100%;
+            padding: 12px 16px;
+            padding-right: 45px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            background: white;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        #song-name:focus {
+            outline: none;
+            border-color: var(--action-color);
+            box-shadow: 0 0 0 4px rgba(28, 126, 214, 0.1);
+        }
+
+        .icon-btn {
+            position: absolute;
+            right: 10px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            color: var(--muted-color);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-btn:hover {
+            background: var(--accent-bg);
+            color: var(--action-color);
         }
 
         .btn {
-            padding: 10px 16px;
-            border-radius: 8px;
+            padding: 12px 20px;
+            border-radius: 12px;
             border: none;
-            font-size: 0.85rem;
-            font-weight: 600;
+            font-size: 0.9rem;
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.2s;
             white-space: nowrap;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        .btn:active { transform: scale(0.98); }
-        .btn-primary { background: #343a40; color: white; }
-        .btn-primary:hover { background: #212529; }
-        .btn-secondary { background: var(--accent-bg); color: var(--text-color); }
-        .btn-secondary:hover { background: #e9ecef; }
-        .btn-outline { background: transparent; border: 1px solid var(--border-color); color: var(--text-color); }
-        .btn-outline:hover { background: var(--accent-bg); }
+        .btn:active { transform: scale(0.96); }
+        .btn-save { background: var(--success-color); color: white; }
+        .btn-save:hover { background: #237031; transform: translateY(-1px); }
+        
+        .btn-download { background: var(--action-color); color: white; }
+        .btn-download:hover { background: #1864ab; transform: translateY(-1px); }
+
+        .archive-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0,0,0,0.02);
+            padding: 8px 12px;
+            border-radius: 10px;
+        }
+
+        .archive-label {
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: var(--muted-color);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
 
         .archive-list {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             overflow-x: auto;
-            padding-bottom: 4px;
-            width: 100%;
+            flex: 1;
             scrollbar-width: none;
-            margin-top: 5px;
         }
         .archive-list::-webkit-scrollbar { display: none; }
 
         .archive-item {
             background: white;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 0.8rem;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             white-space: nowrap;
             border: 1px solid var(--border-color);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-            transition: transform 0.2s;
+            cursor: pointer;
+            transition: all 0.2s;
         }
-        .archive-item:hover { transform: translateY(-1px); border-color: #adb5bd; }
+        .archive-item:hover { border-color: var(--action-color); background: var(--accent-bg); }
+        .archive-item .delete { color: #ff6b6b; font-weight: 800; padding-left: 4px; }
 
-        .archive-item span { cursor: pointer; font-weight: 500; }
-        .archive-item .delete { color: #ff6b6b; cursor: pointer; font-weight: 700; font-size: 1.1rem; line-height: 1; }
-
+        /* --- EDITOR --- */
         .editor-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 24px;
+            gap: 20px;
             background: var(--card-bg);
-            padding: 10px;
+            padding: 8px;
             border-radius: 20px;
             box-shadow: var(--shadow);
             flex: 1;
@@ -164,7 +203,7 @@
             border: none;
             border-right: 1px solid var(--border-color);
             padding: 20px;
-            font-size: 1.15rem;
+            font-size: 1.1rem;
             line-height: 1.7;
             resize: none;
             outline: none;
@@ -177,133 +216,106 @@
             padding: 20px;
             overflow-y: auto;
             height: 100%;
-            scrollbar-width: thin;
         }
 
         .section-container {
-            margin-bottom: 35px;
+            margin-bottom: 30px;
             border-left: 3px solid #dee2e6;
-            padding-left: 20px;
+            padding-left: 15px;
         }
 
         .section-header {
             display: flex;
             justify-content: space-between;
             align-items: baseline;
-            margin-bottom: 16px;
-            padding-bottom: 6px;
+            margin-bottom: 12px;
+            padding-bottom: 4px;
             border-bottom: 1px solid var(--border-color);
         }
 
         .section-name {
-            font-size: 0.95rem;
+            font-size: 0.85rem;
             font-weight: 800;
             color: #495057;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
         }
 
         .section-stats {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--muted-color);
             font-weight: 600;
             display: flex;
-            gap: 8px;
-            align-items: center;
+            gap: 6px;
         }
 
         .mismatch-badge {
             background: #fff5f5;
             color: #fa5252;
             border: 1px solid #ffc9c9;
-            padding: 2px 6px;
+            padding: 1px 4px;
             border-radius: 4px;
-            font-size: 0.65rem;
+            font-size: 0.6rem;
         }
 
         .analyzed-line {
-            margin-bottom: 18px;
-            padding-bottom: 12px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
             border-bottom: 1px solid #f8f9fa;
         }
 
         .line-meta {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             font-weight: 700;
             color: var(--meta-color);
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             display: flex;
             align-items: center;
-            gap: 10px;
-            opacity: 0.8;
+            gap: 8px;
         }
 
         .rhyme-badge {
-            width: 18px; height: 18px; border-radius: 6px;
-            color: white; text-align: center; line-height: 18px;
-            font-size: 0.65rem; font-weight: 800;
+            width: 16px; height: 16px; border-radius: 4px;
+            color: white; text-align: center; line-height: 16px;
+            font-size: 0.6rem; font-weight: 800;
         }
 
         .line-viz {
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             letter-spacing: 2px;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             display: flex;
             flex-wrap: wrap;
-            gap: 4px;
+            gap: 3px;
         }
 
-        .syllable { 
-            padding: 0 2px; 
-            border-bottom: 2px solid transparent; 
-            border-radius: 2px;
-        }
-        .syllable.primary { 
-            background: rgba(224, 49, 49, 0.06); 
-            color: var(--primary-color); 
-            border-bottom-color: var(--primary-color); 
-        }
-        .syllable.secondary { 
-            background: rgba(240, 140, 0, 0.06); 
-            color: var(--secondary-color); 
-            border-bottom-color: var(--secondary-color); 
-        }
+        .syllable { padding: 0 1px; border-bottom: 2px solid transparent; }
+        .syllable.primary { background: rgba(224, 49, 49, 0.05); color: var(--primary-color); border-bottom-color: var(--primary-color); }
+        .syllable.secondary { background: rgba(240, 140, 0, 0.05); color: var(--secondary-color); border-bottom-color: var(--secondary-color); }
         .syllable.none { color: #adb5bd; }
 
-        .line-text { font-size: 0.85rem; color: #868e96; font-style: italic; }
+        .line-text { font-size: 0.8rem; color: #868e96; font-style: italic; }
 
-        .empty-state { 
-            color: #adb5bd; 
-            text-align: center; 
-            margin-top: 100px; 
-            font-size: 0.95rem;
-        }
+        .empty-state { color: #adb5bd; text-align: center; margin-top: 80px; font-size: 0.9rem; }
 
         footer {
             text-align: center;
-            padding: 12px;
+            padding: 10px;
             color: #adb5bd;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             flex-shrink: 0;
-            font-weight: 500;
         }
 
         @media (max-width: 850px) {
-            .container { padding: 8px; }
-            h1 { font-size: 1.4rem; }
+            .container { padding: 10px; }
             .editor-grid {
                 grid-template-columns: 1fr;
                 grid-template-rows: 1fr 1fr;
                 gap: 8px;
-                padding: 8px;
-                border-radius: 16px;
             }
-            #lyrics-input { border-right: none; border-bottom: 1px solid var(--border-color); padding: 15px; font-size: 1.05rem; }
-            #analysis-output { padding: 15px; }
-            .toolbar { padding: 10px; border-radius: 12px; gap: 8px; }
-            .section-container { padding-left: 12px; }
-            .toolbar input { flex: 1 1 100%; order: -1; }
+            #lyrics-input { border-right: none; border-bottom: 1px solid var(--border-color); padding: 15px; }
+            .toolbar-main { flex-wrap: wrap; }
+            .btn { flex: 1; }
         }
     </style>
 </head>
@@ -314,14 +326,19 @@
         </header>
 
         <div class="toolbar">
-            <input type="text" id="song-name" placeholder="Laulun nimi...">
-            <div class="actions-group">
-                <button class="btn btn-primary" id="btn-save" title="Tallenna selaimeen">Tallenna</button>
-                <button class="btn btn-secondary" id="btn-new" title="Tyhjennä">Uusi</button>
-                <button class="btn btn-outline" id="btn-copy" title="Kopioi leikepöydälle">Kopioi</button>
-                <button class="btn btn-outline" id="btn-download" title="Lataa .txt tiedosto">Lataa .txt</button>
+            <div class="toolbar-main">
+                <div class="song-input-wrapper">
+                    <input type="text" id="song-name" placeholder="Laulun nimi...">
+                    <button class="icon-btn" id="btn-copy" title="Kopioi leikepöydälle">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></button>
+                </div>
+                <button class="btn btn-save" id="btn-save">Tallenna</button>
+                <button class="btn btn-download" id="btn-download">Lataa .txt</button>
             </div>
-            <div class="archive-list" id="archive-list"></div>
+            <div class="archive-section">
+                <span class="archive-label">Arkisto</span>
+                <div class="archive-list" id="archive-list"></div>
+            </div>
         </div>
 
         <main class="editor-grid">
@@ -338,7 +355,7 @@
     </div>
 
     <script type="module">
-        // --- LINGVISTINEN LOGIIKKA ---
+        // --- LOGIIKKA ---
         const VOWELS = 'aeiouyäö';
         const DIPHTHONGS = ['ai', 'ei', 'oi', 'ui', 'yi', 'äi', 'öi', 'au', 'eu', 'iu', 'ou', 'ie', 'uo', 'yö', 'ey', 'iy', 'äy', 'öy'];
         const isVowel = (c) => c ? VOWELS.includes(c.toLowerCase()) : false;
@@ -367,41 +384,26 @@
             return syllables;
         }
 
-        function isLong(syllable) {
-            const v = syllable.toLowerCase().split('').filter(isVowel);
-            return v.length > 0 && (!isVowel(syllable.slice(-1)) || v.length >= 2);
-        }
-
-        function getStress(syllables) {
-            return syllables.map((_, i) => i === 0 ? 'primary' : (i % 2 === 0 ? 'secondary' : 'none'));
-        }
-
-        function getRhymePart(syllable) {
-            const idx = syllable.split('').findIndex(isVowel);
-            return idx === -1 ? syllable : syllable.slice(idx);
-        }
-
-        function getRhymeScore(syls1, syls2) {
+        const isLong = (s) => { const v = s.toLowerCase().split('').filter(isVowel); return v.length > 0 && (!isVowel(s.slice(-1)) || v.length >= 2); };
+        const getStress = (syls) => syls.map((_, i) => i === 0 ? 'primary' : (i % 2 === 0 ? 'secondary' : 'none'));
+        const getRhymePart = (s) => { const idx = s.split('').findIndex(isVowel); return idx === -1 ? s : s.slice(idx); };
+        const getRhymeScore = (syls1, syls2) => {
             if (!syls1.length || !syls2.length) return 0;
-            let score = 0;
-            const len = Math.min(syls1.length, syls2.length);
+            let score = 0; const len = Math.min(syls1.length, syls2.length);
             for (let i = 1; i <= len; i++) {
                 const s1 = syls1[syls1.length - i], s2 = syls2[syls2.length - i];
-                if (i < len) {
-                    if (s1 === s2) score++;
-                    else { if (score > 0) return score; if (i === 1 && getRhymePart(s1) === getRhymePart(s2)) score++; else return 0; }
+                if (i < len) { if (s1 === s2) score++; else { if (score > 0) return score; if (i === 1 && getRhymePart(s1) === getRhymePart(s2)) score++; else return 0; }
                 } else { if (getRhymePart(s1) === getRhymePart(s2)) score++; else return score; }
             }
             return score;
-        }
+        };
 
-        // --- UI & TALLENNUS ---
+        // --- UI ---
         const input = document.getElementById('lyrics-input');
         const output = document.getElementById('analysis-output');
         const songNameInput = document.getElementById('song-name');
         const archiveList = document.getElementById('archive-list');
         const btnSave = document.getElementById('btn-save');
-        const btnNew = document.getElementById('btn-new');
         const btnCopy = document.getElementById('btn-copy');
         const btnDownload = document.getElementById('btn-download');
         const colors = ['#e03131', '#2f9e44', '#1971c2', '#7048e8', '#f08c00', '#ae3ec9'];
@@ -473,13 +475,12 @@
                     if (!std) sectionStandards.set(section.name, { lineCount, totalSyllables: section.totalSyllables });
                     else {
                         const diffs = [];
-                        if (std.lineCount !== lineCount) diffs.push(`${lineCount}/${std.lineCount} riviä`);
-                        if (std.totalSyllables !== section.totalSyllables) diffs.push(`${section.totalSyllables}/${std.totalSyllables} tavua`);
+                        if (std.lineCount !== lineCount) diffs.push(`${lineCount}/${std.lineCount} r`);
+                        if (std.totalSyllables !== section.totalSyllables) diffs.push(`${section.totalSyllables}/${std.totalSyllables} t`);
                         if (diffs.length > 0) mismatchMsg = `Ero: ${diffs.join(', ')}`;
                     }
                 }
-                return `
-                <div class="section-container">
+                return `<div class="section-container">
                     ${section.name ? `<div class="section-header"><span class="section-name">${section.name}</span><span class="section-stats">${lineCount} r, ${section.totalSyllables} t ${mismatchMsg ? `<span class="mismatch-badge" title="${mismatchMsg}">⚠️</span>` : ''}</span></div>` : ''}
                     ${section.lines.map(line => {
                         if (line.syllables.length === 0) return '<div style="height:0.8rem"></div>';
@@ -499,7 +500,6 @@
             }).join('');
         }
 
-        // TALLENNUS-LOGIIKKA
         const getArchive = () => JSON.parse(localStorage.getItem('lauluapuri-archive') || '{}');
         const saveToArchive = () => {
             const name = songNameInput.value.trim();
@@ -507,24 +507,21 @@
             const archive = getArchive(); archive[name] = input.value;
             localStorage.setItem('lauluapuri-archive', JSON.stringify(archive)); renderArchive();
         };
-        const loadFromArchive = (name) => { 
-            const archive = getArchive(); 
-            if (archive[name]) { 
-                if (input.value.trim() && input.value !== archive[name]) {
-                    if (!confirm('Pyyhitäänkö nykyinen teksti?')) return;
-                }
-                input.value = archive[name]; songNameInput.value = name; update(); 
-            } 
+        const loadFromArchive = (name) => {
+            const archive = getArchive();
+            if (archive[name]) {
+                if (input.value.trim() && input.value !== archive[name] && !confirm('Pyyhitäänkö nykyinen?')) return;
+                input.value = archive[name]; songNameInput.value = name; update();
+            }
         };
         const deleteFromArchive = (name, e) => { e.stopPropagation(); if (confirm(`Poistetaanko "${name}"?`)) { const archive = getArchive(); delete archive[name]; localStorage.setItem('lauluapuri-archive', JSON.stringify(archive)); renderArchive(); } };
-        const renderArchive = () => { const archive = getArchive(); archiveList.innerHTML = Object.keys(archive).map(name => `<div class="archive-item"><span onclick="window.loadSong('${name}')">${name}</span><div class="delete" onclick="window.deleteSong('${name}', event)">×</div></div>`).join(''); };
+        const renderArchive = () => { archiveList.innerHTML = Object.keys(getArchive()).map(name => `<div class="archive-item" onclick="window.loadSong('${name}')"><span>${name}</span><div class="delete" onclick="window.deleteSong('${name}', event)">×</div></div>`).join(''); };
 
-        // EKSPORTTAUS
         const copyToClipboard = () => {
             navigator.clipboard.writeText(input.value).then(() => {
-                const originalText = btnCopy.innerText;
-                btnCopy.innerText = 'Kopioitu!';
-                setTimeout(() => btnCopy.innerText = originalText, 2000);
+                const originalColor = btnCopy.style.color;
+                btnCopy.style.color = 'var(--success-color)';
+                setTimeout(() => btnCopy.style.color = originalColor, 2000);
             });
         };
 
@@ -532,17 +529,12 @@
             const name = songNameInput.value.trim() || 'laulu';
             const blob = new Blob([input.value], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${name}.txt`;
-            a.click();
-            URL.revokeObjectURL(url);
+            const a = document.createElement('a'); a.href = url; a.download = `${name}.txt`; a.click(); URL.revokeObjectURL(url);
         };
 
         window.loadSong = loadFromArchive; window.deleteSong = deleteFromArchive;
         input.addEventListener('input', update);
         btnSave.addEventListener('click', saveToArchive);
-        btnNew.addEventListener('click', () => { if (confirm('Tyhjennetäänkö?')) { input.value = ''; songNameInput.value = ''; update(); } });
         btnCopy.addEventListener('click', copyToClipboard);
         btnDownload.addEventListener('click', downloadTxt);
 
