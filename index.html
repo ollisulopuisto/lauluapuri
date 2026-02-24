@@ -191,7 +191,7 @@
         </header>
 
         <main class="editor-grid">
-            <textarea id="lyrics-input" placeholder="Kirjoita tähän...&#10;&#10;Esim:&#10;Kultaista on rannalla&#10;Sulla kaunis kannalla" spellcheck="false"></textarea>
+            <textarea id="lyrics-input" placeholder="Kirjoita tähän...&#10;&#10;Esim:&#10;# Säkeistö&#10;Kultaista on rannalla&#10;Sulla kaunis kannalla" spellcheck="false"></textarea>
             <div id="analysis-output">
                 <div class="empty-state">Aloita kirjoittamalla vasemmalle.</div>
             </div>
@@ -255,15 +255,37 @@
             return syllables.map((_, i) => i === 0 ? 'primary' : (i % 2 === 0 ? 'secondary' : 'none'));
         }
 
+        function getRhymePart(syllable) {
+            const idx = syllable.split('').findIndex(isVowel);
+            return idx === -1 ? syllable : syllable.slice(idx);
+        }
+
         function getRhymeScore(syls1, syls2) {
             if (!syls1.length || !syls2.length) return 0;
             let score = 0;
             const len = Math.min(syls1.length, syls2.length);
+            
             for (let i = 1; i <= len; i++) {
-                if (syls1[syls1.length - i] === syls2[syls2.length - i]) {
-                    score++;
+                const s1 = syls1[syls1.length - i];
+                const s2 = syls2[syls2.length - i];
+                
+                if (i < len) {
+                    if (s1 === s2) {
+                        score++;
+                    } else {
+                        if (score > 0) return score; 
+                        if (i === 1 && getRhymePart(s1) === getRhymePart(s2)) {
+                            score++;
+                        } else {
+                            return 0;
+                        }
+                    }
                 } else {
-                    break;
+                    if (getRhymePart(s1) === getRhymePart(s2)) {
+                        score++;
+                    } else {
+                        return score;
+                    }
                 }
             }
             return score;
@@ -291,7 +313,6 @@
             lines.forEach((lineText) => {
                 const trimmed = lineText.trim();
                 
-                // Osiotunniste (esim. # Säkeistö)
                 if (trimmed.startsWith('#')) {
                     if (currentSection.lines.length > 0 || currentSection.name) {
                         sections.push(currentSection);
@@ -320,35 +341,42 @@
 
                 const currentLastSyls = wordSyllableLists[wordSyllableLists.length - 1] || [];
                 let group = null;
+                let score = 0;
 
                 if (lastWord) {
                     for (const [prevWord, gid] of rhymeGroups.entries()) {
-                        if (getRhymeScore(currentLastSyls, syllabify(prevWord)) >= 1) {
+                        const s = getRhymeScore(currentLastSyls, syllabify(prevWord));
+                        if (s >= 1) {
                             group = gid;
+                            score = s;
                             break;
                         }
                     }
                     
                     if (!group) {
-                        // Etsitään riimi kaikista aiemmista osioista
                         for (const s of sections) {
                             for (const l of s.lines) {
-                                if (l.lastWord && getRhymeScore(currentLastSyls, l.lastSyllables) >= 1) {
+                                const sc = l.lastWord ? getRhymeScore(currentLastSyls, l.lastSyllables) : 0;
+                                if (sc >= 1) {
                                     group = nextGroupId++;
                                     l.group = group;
+                                    l.score = sc;
                                     rhymeGroups.set(l.lastWord, group);
+                                    score = sc;
                                     break;
                                 }
                             }
                             if (group) break;
                         }
-                        // Etsitään vielä kuluvan osion aiemmista riveistä
                         if (!group) {
                             for (const l of currentSection.lines) {
-                                if (l.lastWord && getRhymeScore(currentLastSyls, l.lastSyllables) >= 1) {
+                                const sc = l.lastWord ? getRhymeScore(currentLastSyls, l.lastSyllables) : 0;
+                                if (sc >= 1) {
                                     group = nextGroupId++;
                                     l.group = group;
+                                    l.score = sc;
                                     rhymeGroups.set(l.lastWord, group);
+                                    score = sc;
                                     break;
                                 }
                             }
@@ -362,10 +390,11 @@
                     count: lineSyllables.length, 
                     lastWord, 
                     group,
+                    score,
                     lastSyllables: currentLastSyls 
                 };
                 
-                if (trimmed || lineText === '') { // Säilytetään tyhjät rivit osion sisällä
+                if (trimmed || lineText === '') {
                     currentSection.lines.push(analyzedLine);
                     currentSection.totalSyllables += analyzedLine.count;
                 }
@@ -390,13 +419,13 @@
                             </div>
                             <div class="line-viz">
                                 ${line.syllables.map((s, sIdx) => {
-                                    const isRhymingSyllable = line.group && sIdx >= line.syllables.length - 1;
+                                    const isRhymingSyllable = line.group && sIdx >= line.syllables.length - line.score;
                                     const style = isRhymingSyllable ? `border-bottom: 3px solid ${colors[(line.group-1)%colors.length]}` : '';
                                     return `<span class="syllable ${s.stress}" style="${style}">${s.isLong ? '—' : '◡'}</span>`;
                                 }).join('')}
                             </div>
                             <div class="line-text">${line.syllables.map((s, sIdx) => {
-                                const isRhymingSyllable = line.group && sIdx >= line.syllables.length - 1;
+                                const isRhymingSyllable = line.group && sIdx >= line.syllables.length - line.score;
                                 const color = isRhymingSyllable ? colors[(line.group-1)%colors.length] : 'inherit';
                                 const weight = isRhymingSyllable ? 'bold' : 'normal';
                                 return `<span style="color:${color}; font-weight:${weight}">${s.text}</span>`;
@@ -409,7 +438,6 @@
 
         input.addEventListener('input', update);
         
-        // Versiointi (haetaan package.json:sta jos mahdollista, muuten staattinen)
         fetch('./package.json').then(r => r.json()).then(pkg => {
             document.getElementById('version-display').innerText = 'v' + pkg.version;
         }).catch(() => {});
