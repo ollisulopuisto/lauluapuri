@@ -76,7 +76,7 @@
             border: 1px solid var(--border-color);
             border-radius: 8px;
             font-size: 0.9rem;
-            flex: 1;
+            flex: 2;
             min-width: 180px;
             background: var(--bg-color);
             transition: border-color 0.2s;
@@ -88,15 +88,24 @@
             background: white;
         }
 
+        .actions-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
         .btn {
-            padding: 10px 18px;
+            padding: 10px 16px;
             border-radius: 8px;
             border: none;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
             white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .btn:active { transform: scale(0.98); }
@@ -104,6 +113,8 @@
         .btn-primary:hover { background: #212529; }
         .btn-secondary { background: var(--accent-bg); color: var(--text-color); }
         .btn-secondary:hover { background: #e9ecef; }
+        .btn-outline { background: transparent; border: 1px solid var(--border-color); color: var(--text-color); }
+        .btn-outline:hover { background: var(--accent-bg); }
 
         .archive-list {
             display: flex;
@@ -112,6 +123,7 @@
             padding-bottom: 4px;
             width: 100%;
             scrollbar-width: none;
+            margin-top: 5px;
         }
         .archive-list::-webkit-scrollbar { display: none; }
 
@@ -289,8 +301,9 @@
             }
             #lyrics-input { border-right: none; border-bottom: 1px solid var(--border-color); padding: 15px; font-size: 1.05rem; }
             #analysis-output { padding: 15px; }
-            .toolbar { padding: 10px; border-radius: 12px; }
+            .toolbar { padding: 10px; border-radius: 12px; gap: 8px; }
             .section-container { padding-left: 12px; }
+            .toolbar input { flex: 1 1 100%; order: -1; }
         }
     </style>
 </head>
@@ -302,8 +315,12 @@
 
         <div class="toolbar">
             <input type="text" id="song-name" placeholder="Laulun nimi...">
-            <button class="btn btn-primary" id="btn-save">Tallenna</button>
-            <button class="btn btn-secondary" id="btn-new">Uusi</button>
+            <div class="actions-group">
+                <button class="btn btn-primary" id="btn-save" title="Tallenna selaimeen">Tallenna</button>
+                <button class="btn btn-secondary" id="btn-new" title="Tyhjennä">Uusi</button>
+                <button class="btn btn-outline" id="btn-copy" title="Kopioi leikepöydälle">Kopioi</button>
+                <button class="btn btn-outline" id="btn-download" title="Lataa .txt tiedosto">Lataa .txt</button>
+            </div>
             <div class="archive-list" id="archive-list"></div>
         </div>
 
@@ -385,6 +402,8 @@
         const archiveList = document.getElementById('archive-list');
         const btnSave = document.getElementById('btn-save');
         const btnNew = document.getElementById('btn-new');
+        const btnCopy = document.getElementById('btn-copy');
+        const btnDownload = document.getElementById('btn-download');
         const colors = ['#e03131', '#2f9e44', '#1971c2', '#7048e8', '#f08c00', '#ae3ec9'];
 
         function update() {
@@ -492,20 +511,40 @@
             const archive = getArchive(); 
             if (archive[name]) { 
                 if (input.value.trim() && input.value !== archive[name]) {
-                    if (!confirm('Haluatko varmasti ladata tallennetun tekstin? Nykyinen muokkaamaton tekstisi pyyhitään.')) return;
+                    if (!confirm('Pyyhitäänkö nykyinen teksti?')) return;
                 }
-                input.value = archive[name]; 
-                songNameInput.value = name; 
-                update(); 
+                input.value = archive[name]; songNameInput.value = name; update(); 
             } 
         };
         const deleteFromArchive = (name, e) => { e.stopPropagation(); if (confirm(`Poistetaanko "${name}"?`)) { const archive = getArchive(); delete archive[name]; localStorage.setItem('lauluapuri-archive', JSON.stringify(archive)); renderArchive(); } };
         const renderArchive = () => { const archive = getArchive(); archiveList.innerHTML = Object.keys(archive).map(name => `<div class="archive-item"><span onclick="window.loadSong('${name}')">${name}</span><div class="delete" onclick="window.deleteSong('${name}', event)">×</div></div>`).join(''); };
 
+        // EKSPORTTAUS
+        const copyToClipboard = () => {
+            navigator.clipboard.writeText(input.value).then(() => {
+                const originalText = btnCopy.innerText;
+                btnCopy.innerText = 'Kopioitu!';
+                setTimeout(() => btnCopy.innerText = originalText, 2000);
+            });
+        };
+
+        const downloadTxt = () => {
+            const name = songNameInput.value.trim() || 'laulu';
+            const blob = new Blob([input.value], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${name}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        };
+
         window.loadSong = loadFromArchive; window.deleteSong = deleteFromArchive;
         input.addEventListener('input', update);
         btnSave.addEventListener('click', saveToArchive);
         btnNew.addEventListener('click', () => { if (confirm('Tyhjennetäänkö?')) { input.value = ''; songNameInput.value = ''; update(); } });
+        btnCopy.addEventListener('click', copyToClipboard);
+        btnDownload.addEventListener('click', downloadTxt);
 
         const draft = localStorage.getItem('lauluapuri-draft'); if (draft) input.value = draft;
         update(); renderArchive();
