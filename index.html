@@ -64,20 +64,10 @@
             position: relative;
         }
 
-        /* --- TOP AREA (Collapsible) --- */
-        .top-area {
-            flex-shrink: 0;
-            display: block;
-        }
-
-        body.ui-collapsed .top-area {
-            display: none;
-        }
-
-        header { text-align: center; margin-bottom: 15px; }
+        header { text-align: center; margin-bottom: 15px; flex-shrink: 0; }
         h1 { font-size: 1.8rem; margin: 0; font-weight: 800; letter-spacing: -0.02em; color: var(--text-color); }
 
-        .toolbar { display: flex; flex-direction: column; gap: 12px; margin-bottom: 15px; }
+        .toolbar { display: flex; flex-direction: column; gap: 12px; margin-bottom: 15px; flex-shrink: 0; }
         .toolbar-main { display: flex; gap: 10px; align-items: center; }
         .toolbar-actions { display: flex; gap: 10px; }
 
@@ -95,47 +85,6 @@
 
         .btn-save { background: var(--success-color); color: white; }
         .btn-download { background: var(--action-color); color: white; }
-
-        /* --- PERSISTENT TOGGLE --- */
-        .toggle-container {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            z-index: 1000;
-        }
-
-        .ui-toggle-btn {
-            background: var(--card-bg);
-            border: 2px solid var(--border-color);
-            padding: 10px;
-            border-radius: 12px;
-            cursor: pointer;
-            box-shadow: var(--shadow);
-            color: var(--action-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-
-        .ui-toggle-btn:hover {
-            border-color: var(--action-color);
-            transform: translateY(-1px);
-        }
-
-        .ui-toggle-btn svg {
-            transition: transform 0.3s ease;
-        }
-
-        body.ui-collapsed .ui-toggle-btn {
-            background: var(--action-color);
-            color: white;
-            border-color: transparent;
-        }
-
-        body.ui-collapsed .ui-toggle-btn svg {
-            transform: rotate(180deg);
-        }
 
         .archive-section {
             display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.02);
@@ -199,35 +148,26 @@
             .editor-side { border-right: none; border-bottom: 1px solid var(--border-color); }
             #lyrics-input { padding: 15px; }
             #analysis-output { padding: 15px; }
-            .toggle-container { top: 5px; left: 5px; }
         }
     </style>
 </head>
 <body>
-    <div class="toggle-container">
-        <button class="ui-toggle-btn" id="ui-toggle" title="Näytä/piilota työkalut">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
-        </button>
-    </div>
-
     <div class="container">
-        <div class="top-area" id="top-area">
-            <header>
-                <h1>Lauluapuri</h1>
-            </header>
+        <header>
+            <h1>Lauluapuri</h1>
+        </header>
 
-            <div class="toolbar">
-                <div class="toolbar-main">
-                    <input type="text" id="song-name" placeholder="Laulun nimi...">
-                    <div class="toolbar-actions">
-                        <button class="btn btn-save" id="btn-save">Tallenna</button>
-                        <button class="btn btn-download" id="btn-download">Lataa .txt</button>
-                    </div>
+        <div class="toolbar">
+            <div class="toolbar-main">
+                <input type="text" id="song-name" placeholder="Laulun nimi...">
+                <div class="toolbar-actions">
+                    <button class="btn btn-save" id="btn-save">Tallenna</button>
+                    <button class="btn btn-download" id="btn-download">Lataa .txt</button>
                 </div>
-                <div class="archive-section">
-                    <span class="archive-label">Arkisto</span>
-                    <div class="archive-list" id="archive-list"></div>
-                </div>
+            </div>
+            <div class="archive-section">
+                <span class="archive-label">Arkisto</span>
+                <div class="archive-list" id="archive-list"></div>
             </div>
         </div>
 
@@ -311,7 +251,6 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
         const btnSave = document.getElementById('btn-save');
         const btnCopy = document.getElementById('btn-copy');
         const btnDownload = document.getElementById('btn-download');
-        const uiToggle = document.getElementById('ui-toggle');
         const colors = ['#ff6b6b', '#51cf66', '#4dabf7', '#845ef7', '#fcc419', '#f06595'];
 
         function update() {
@@ -438,22 +377,12 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
             const a = document.createElement('a'); a.href = url; a.download = `${name}.txt`; a.click(); URL.revokeObjectURL(url);
         };
 
-        // Refaktoroitu toggle
-        uiToggle.addEventListener('click', () => {
-            const isNowCollapsed = document.body.classList.toggle('ui-collapsed');
-            localStorage.setItem('lauluapuri-ui-collapsed', isNowCollapsed);
-        });
-
         window.loadSong = loadFromArchive; window.deleteSong = deleteFromArchive;
         input.addEventListener('input', update);
         btnSave.addEventListener('click', saveToArchive);
 
         // Alustus
         const draft = localStorage.getItem('lauluapuri-draft'); if (draft) input.value = draft;
-        if (localStorage.getItem('lauluapuri-ui-collapsed') === 'true') {
-            document.body.classList.add('ui-collapsed');
-        }
-        
         update(); renderArchive();
         fetch('./package.json').then(r => r.json()).then(pkg => { document.getElementById('version-display').innerText = 'v' + pkg.version; }).catch(() => {});
     </script>
