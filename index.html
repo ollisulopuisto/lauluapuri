@@ -85,6 +85,7 @@
 
         .btn-save { background: var(--success-color); color: white; }
         .btn-download { background: var(--action-color); color: white; }
+        .btn-share { background: var(--meta-color); color: white; }
 
         /* MOBIILI-TOGGLE (piilossa desktopilla) */
         .mobile-ui-toggle { display: none; }
@@ -199,6 +200,7 @@
                 <div class="toolbar-actions">
                     <button class="btn btn-save" id="btn-save">Tallenna</button>
                     <button class="btn btn-download" id="btn-download">Lataa .txt</button>
+                    <button class="btn btn-share" id="btn-share">Jaa linkki</button>
                 </div>
             </div>
             <div class="archive-section">
@@ -287,6 +289,7 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
         const btnSave = document.getElementById('btn-save');
         const btnCopy = document.getElementById('btn-copy');
         const btnDownload = document.getElementById('btn-download');
+        const btnShare = document.getElementById('btn-share');
         const zenToggle = document.getElementById('zen-toggle');
         const colors = ['#ff6b6b', '#51cf66', '#4dabf7', '#845ef7', '#fcc419', '#f06595'];
 
@@ -414,6 +417,43 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
             const a = document.createElement('a'); a.href = url; a.download = `${name}.txt`; a.click(); URL.revokeObjectURL(url);
         });
 
+        btnShare.addEventListener('click', () => {
+            if (btnShare.disabled) return;
+
+            const name = songNameInput.value.trim();
+            const lyrics = input.value;
+            if (!lyrics.trim()) {
+                alert('Ei jaettavaa sisältöä!');
+                return;
+            }
+
+            const shareData = { name, lyrics };
+            const jsonString = JSON.stringify(shareData);
+            // encodeURIComponent käsittelee ääkköset oikein ennen base64-enkoodausta
+            const base64Data = btoa(encodeURIComponent(jsonString));
+
+            // Luodaan uusi URL joka sisältää hash-osan
+            const url = new URL(window.location.href);
+            url.hash = `share=${base64Data}`;
+
+            btnShare.disabled = true;
+            navigator.clipboard.writeText(url.toString()).then(() => {
+                const originalText = btnShare.innerText;
+                const originalBg = btnShare.style.background;
+                btnShare.innerText = 'Kopioitu!';
+                btnShare.style.background = 'var(--success-color)';
+                setTimeout(() => {
+                    btnShare.innerText = originalText;
+                    btnShare.style.background = originalBg;
+                    btnShare.disabled = false;
+                }, 2000);
+            }).catch(err => {
+                console.error('Leikepöydälle kopiointi epäonnistui', err);
+                alert('Linkin kopiointi epäonnistui. Voit kopioida sen tästä:\n' + url.toString());
+                btnShare.disabled = false;
+            });
+        });
+
         // ZEN-TOGGLE LOGIIKKA (VAIN MOBIILI)
         zenToggle.addEventListener('click', () => {
             const isZen = document.body.classList.toggle('zen-mode');
@@ -429,7 +469,29 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
         btnSave.addEventListener('click', saveToArchive);
 
         // Alustus
-        const draft = localStorage.getItem('lauluapuri-draft'); if (draft) input.value = draft;
+        const hash = window.location.hash;
+        if (hash && hash.startsWith('#share=')) {
+            try {
+                const base64Data = hash.substring(7);
+                const jsonString = decodeURIComponent(atob(base64Data));
+                const shareData = JSON.parse(jsonString);
+
+                if (shareData && shareData.lyrics) {
+                    input.value = shareData.lyrics;
+                    if (shareData.name) {
+                        songNameInput.value = shareData.name;
+                    }
+                    // Poista hash URL:sta siistiyden vuoksi
+                    history.replaceState(null, "", window.location.pathname + window.location.search);
+                }
+            } catch (err) {
+                console.error('Jaetun linkin avaaminen epäonnistui', err);
+                alert('Jaetun linkin avaaminen epäonnistui. Linkki saattaa olla viallinen.');
+            }
+        } else {
+            const draft = localStorage.getItem('lauluapuri-draft'); if (draft) input.value = draft;
+        }
+
         const zenState = localStorage.getItem('lauluapuri-zen') === 'true';
         if (zenState && window.innerWidth <= 850) {
             document.body.classList.add('zen-mode');
