@@ -11,16 +11,17 @@ Voit myös kokeilla sitä suoraan verkossa:
 
 ## ✨ Ominaisuudet
 
-- **Itsenäinen:** Ei tarvitse `npm`:ää, `node_modules`:ia tai serveriä.
+- **Itsenäinen:** Itse ohjelman *käyttö* ei tarvitse `npm`:ää, `node_modules`:ia tai serveriä. Vain yksi `index.html`-tiedosto riittää.
 - **Tavutus:** Automaattinen suomen kielen tavutus.
 - **Rytmi:** Pitkät (`—`) ja lyhyet (`◡`) tavut sekä painotukset.
 - **Riimit:** Tunnistaa loppusointuja.
 
-## 📅 Versiointi
+## 📅 Versiointi ja kehitys
 
-Tämä projekti käyttää automaattista CalVer-versiointia. Jokainen commit nostaa versionumeroa muotoon `YYYY.MM.DD.PATCH`.
+Tämä projekti käyttää automaattista CalVer-versiointia. Jokainen commit nostaa versionumeroa muotoon `YYYY.MM.DD.PATCH`. Vaikka itse sovellus toimii ilman riippuvuuksia, automaattinen versiointi kehitysympäristössä vaatii Node.js:n.
 
 Jos haluat muokata koodia ja säilyttää versioinnin:
-1. Tee muutokset `index.html`-tiedostoon.
-2. `git commit -m "Viesti"` -> Husky päivittää version.
-3. `git push` -> GitHub Actions julkaisee uuden version.
+1. Asenna riippuvuudet komennolla `npm install` (tämä asentaa Huskyn, joka hoitaa versioinnin).
+2. Tee muutokset `index.html`-tiedostoon.
+3. `git commit -m "Viesti"` -> Husky päivittää version automaattisesti ennen committia.
+4. `git push` -> GitHub Actions julkaisee uuden version.
