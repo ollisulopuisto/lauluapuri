@@ -23,5 +23,5 @@ Tämä projekti käyttää automaattista CalVer-versiointia. Jokainen commit nos
 Jos haluat muokata koodia ja säilyttää versioinnin:
 1. Asenna riippuvuudet komennolla `npm install` (tämä asentaa Huskyn, joka hoitaa versioinnin).
 2. Tee muutokset `index.html`-tiedostoon.
-3. `git commit -m "Viesti"` -> Husky päivittää version automaattisesti ennen committia.
+3. git commit -m "Viesti" -> Husky päivittää version (huomaa, että muutokset on lisättävä committiin, jotta versio päivittyy arkistoon).
 4. `git push` -> GitHub Actions julkaisee uuden version.
