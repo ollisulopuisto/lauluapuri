@@ -18,7 +18,7 @@ Voit myös kokeilla sitä suoraan verkossa:
 
 ## 📅 Versiointi ja kehitys
 
-Tämä projekti käyttää automaattista CalVer-versiointia. Jokainen commit nostaa versionumeroa muotoon `YYYY.MM.DD.PATCH`. Vaikka itse sovellus toimii ilman riippuvuuksia, automaattinen versiointi kehitysympäristössä vaatii Node.js:n.
+Tämä projekti käyttää automaattista CalVer-versiointia. Jokainen commit nostaa versionumeroa muotoon `YYYY.MM.DD.PATCH`. Vaikka itse sovellus toimii ilman riippuvuuksia, automaattinen versiointi kehitysympäristössä vaatii Node.js >= 18:n.
 
 Jos haluat muokata koodia ja säilyttää versioinnin:
 1. Asenna riippuvuudet komennolla npm install ja varmista, että Husky-koukut on alustettu (esim. npx husky init).
