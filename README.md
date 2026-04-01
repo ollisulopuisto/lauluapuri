@@ -21,7 +21,7 @@ Voit myös kokeilla sitä suoraan verkossa:
 Tämä projekti käyttää automaattista CalVer-versiointia. Jokainen commit nostaa versionumeroa muotoon `YYYY.MM.DD.PATCH`. Vaikka itse sovellus toimii ilman riippuvuuksia, automaattinen versiointi kehitysympäristössä vaatii Node.js:n.
 
 Jos haluat muokata koodia ja säilyttää versioinnin:
-1. Asenna riippuvuudet komennolla `npm install` (tämä asentaa Huskyn, joka hoitaa versioinnin).
+1. Asenna riippuvuudet komennolla npm install ja varmista, että Husky-koukut on alustettu (esim. npx husky init).
 2. Tee muutokset `index.html`-tiedostoon.
 3. git commit -m "Viesti" -> Husky päivittää version (huomaa, että muutokset on lisättävä committiin, jotta versio päivittyy arkistoon).
 4. `git push` -> GitHub Actions julkaisee uuden version.
