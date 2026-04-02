@@ -439,12 +439,11 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
             btnShare.disabled = true;
             navigator.clipboard.writeText(url.toString()).then(() => {
                 const originalText = btnShare.innerText;
-                const originalBg = btnShare.style.background;
                 btnShare.innerText = 'Kopioitu!';
                 btnShare.style.background = 'var(--success-color)';
                 setTimeout(() => {
                     btnShare.innerText = originalText;
-                    btnShare.style.background = originalBg;
+                    btnShare.style.background = '';
                     btnShare.disabled = false;
                 }, 2000);
             }).catch(err => {
