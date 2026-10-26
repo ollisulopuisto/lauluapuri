@@ -8,6 +8,8 @@
     "test": "echo \"Ei testejä määritelty refaktoroinnin jälkeen\" && exit 0"
   },
   "devDependencies": {
-    "husky": "^9.1.7"
+    "@vitest/ui": "^4.1.12",
+    "husky": "^9.1.7",
+    "vitest": "^4.1.12"
   }
 }
