@@ -292,6 +292,7 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
         const btnShare = document.getElementById('btn-share');
         const zenToggle = document.getElementById('zen-toggle');
         const colors = ['#ff6b6b', '#51cf66', '#4dabf7', '#845ef7', '#fcc419', '#f06595'];
+        const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
         function update() {
             const lyrics = input.value;
@@ -366,7 +367,7 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
                     }
                 }
                 return `<div class="section-container">
-                    ${section.name ? `<div class="section-header"><span class="section-name">${section.name}</span><span class="section-stats">${lineCount} r, ${section.totalSyllables} t ${mismatchMsg ? `<span class="mismatch-badge" title="${mismatchMsg}">⚠️</span>` : ''}</span></div>` : ''}
+                    ${section.name ? `<div class="section-header"><span class="section-name">${esc(section.name)}</span><span class="section-stats">${lineCount} r, ${section.totalSyllables} t ${mismatchMsg ? `<span class="mismatch-badge" title="${esc(mismatchMsg)}">⚠️</span>` : ''}</span></div>` : ''}
                     ${section.lines.map(line => {
                         if (line.syllables.length === 0) return '<div style="height:0.8rem"></div>';
                         return `<div class="analyzed-line">
@@ -377,7 +378,7 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
                             }).join('')}</div>
                             <div class="line-text">${line.syllables.map((s, sIdx) => {
                                 const isRhyme = line.group && sIdx >= line.syllables.length - line.score;
-                                return `<span style="color:${isRhyme ? colors[(line.group-1)%colors.length] : 'inherit'}; font-weight:${isRhyme ? 'bold' : 'normal'}">${s.text}</span>`;
+                                return `<span style="color:${isRhyme ? colors[(line.group-1)%colors.length] : 'inherit'}; font-weight:${isRhyme ? 'bold' : 'normal'}">${esc(s.text)}</span>`;
                             }).join('-')}</div>
                         </div>`;
                     }).join('')}
@@ -400,7 +401,23 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
             }
         };
         const deleteFromArchive = (name, e) => { e.stopPropagation(); if (confirm(`Poistetaanko "${name}"?`)) { const archive = getArchive(); delete archive[name]; localStorage.setItem('lauluapuri-archive', JSON.stringify(archive)); renderArchive(); } };
-        const renderArchive = () => { archiveList.innerHTML = Object.keys(getArchive()).map(name => `<div class="archive-item" onclick="window.loadSong('${name}')"><span>${name}</span><div class="delete" onclick="window.deleteSong('${name}', event)">×</div></div>`).join(''); };
+        const renderArchive = () => {
+            archiveList.textContent = '';
+            Object.keys(getArchive()).forEach(name => {
+                const item = document.createElement('div');
+                item.className = 'archive-item';
+                const span = document.createElement('span');
+                span.textContent = name;
+                const del = document.createElement('div');
+                del.className = 'delete';
+                del.textContent = '\u00d7';
+                del.addEventListener('click', (e) => window.deleteSong(name, e));
+                item.appendChild(span);
+                item.appendChild(del);
+                item.addEventListener('click', () => window.loadSong(name));
+                archiveList.appendChild(item);
+            });
+        };
 
         btnCopy.addEventListener('click', () => {
             navigator.clipboard.writeText(input.value).then(() => {
