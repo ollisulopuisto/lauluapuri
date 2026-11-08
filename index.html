@@ -244,27 +244,31 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
     <script type="module">
         // --- LOGIIKKA ---
         const VOWELS = 'aeiouyäö';
-        const DIPHTHONGS = ['ai', 'ei', 'oi', 'ui', 'yi', 'äi', 'öi', 'au', 'eu', 'iu', 'ou', 'ie', 'uo', 'yö', 'ey', 'iy', 'äy', 'öy'];
+        const DIPHTHONGS = new Set(['ai', 'ei', 'oi', 'ui', 'yi', 'äi', 'öi', 'au', 'eu', 'iu', 'ou', 'ie', 'uo', 'yö', 'ey', 'iy', 'äy', 'öy']);
         const isVowel = (c) => c ? VOWELS.includes(c.toLowerCase()) : false;
 
+        // Optimized syllabification: direct indexing without allocating char arrays,
+        // O(1) diphthong set lookups, and state tracking to avoid repetitive vowel scans.
         function syllabify(word) {
             if (!word) return [];
-            const chars = word.toLowerCase().replace(/[^a-zäö]/g, '').split('');
+            const clean = word.toLowerCase().replace(/[^a-zäö]/g, '');
+            const len = clean.length;
+            if (len === 0) return [];
             const syllables = [];
-            let current = '';
-            for (let i = 0; i < chars.length; i++) {
-                current += chars[i];
-                const next = chars[i + 1];
+            let current = '', currentHasVowel = false;
+            for (let i = 0; i < len; i++) {
+                const ch = clean[i];
+                current += ch;
+                const chIsVowel = isVowel(ch);
+                if (chIsVowel) currentHasVowel = true;
+                const next = i + 1 < len ? clean[i + 1] : '';
                 if (!next) break;
-                if (isVowel(chars[i])) {
-                    let nextVowelIdx = -1;
-                    for (let j = i + 1; j < chars.length; j++) { if (isVowel(chars[j])) { nextVowelIdx = j; break; } }
-                    if (nextVowelIdx !== -1 && nextVowelIdx === i + 1) {
-                        const pair = chars[i] + chars[nextVowelIdx];
-                        if (chars[i] !== chars[nextVowelIdx] && !DIPHTHONGS.includes(pair)) { syllables.push(current); current = ''; }
+                if (chIsVowel) {
+                    if (isVowel(next) && ch !== next && !DIPHTHONGS.has(ch + next)) {
+                        syllables.push(current); current = ''; currentHasVowel = false;
                     }
-                } else if (isVowel(next) && current.length > 1) {
-                    if (current.split('').some(isVowel)) { const last = current.slice(-1); syllables.push(current.slice(0, -1)); current = last; }
+                } else if (isVowel(next) && current.length > 1 && currentHasVowel) {
+                    syllables.push(current.slice(0, -1)); current = ch; currentHasVowel = false;
                 }
             }
             if (current) syllables.push(current);
@@ -330,26 +334,27 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
                 const currentLastSyls = wordSyllableLists[wordSyllableLists.length - 1] || [];
                 let group = null, score = 0;
                 if (lastWord) {
-                    for (const [prevWord, gid] of rhymeGroups.entries()) {
-                        const s = getRhymeScore(currentLastSyls, syllabify(prevWord));
-                        if (s >= 1) { group = gid; score = s; break; }
+                    // Cache word syllables in rhymeGroups to avoid re-syllabifying prevWord repeatedly
+                    for (const [prevWord, entry] of rhymeGroups.entries()) {
+                        const s = getRhymeScore(currentLastSyls, entry.syls);
+                        if (s >= 1) { group = entry.gid; score = s; break; }
                     }
                     if (!group) {
                         for (const s of sections) {
                             for (const l of s.lines) {
                                 const sc = l.lastWord ? getRhymeScore(currentLastSyls, l.lastSyllables) : 0;
-                                if (sc >= 1) { group = nextGroupId++; l.group = group; l.score = sc; rhymeGroups.set(l.lastWord, group); score = sc; break; }
+                                if (sc >= 1) { group = nextGroupId++; l.group = group; l.score = sc; rhymeGroups.set(l.lastWord, { gid: group, syls: l.lastSyllables }); score = sc; break; }
                             }
                             if (group) break;
                         }
                         if (!group) {
                             for (const l of currentSection.lines) {
                                 const sc = l.lastWord ? getRhymeScore(currentLastSyls, l.lastSyllables) : 0;
-                                if (sc >= 1) { group = nextGroupId++; l.group = group; l.score = sc; rhymeGroups.set(l.lastWord, group); score = sc; break; }
+                                if (sc >= 1) { group = nextGroupId++; l.group = group; l.score = sc; rhymeGroups.set(l.lastWord, { gid: group, syls: l.lastSyllables }); score = sc; break; }
                             }
                         }
                     }
-                    if (group) rhymeGroups.set(lastWord, group);
+                    if (group) rhymeGroups.set(lastWord, { gid: group, syls: currentLastSyls });
                 }
                 const analyzedLine = { syllables: lineSyllables, count: lineSyllables.length, lastWord, group, score, lastSyllables: currentLastSyls };
                 if (trimmed || lineText === '') { currentSection.lines.push(analyzedLine); currentSection.totalSyllables += analyzedLine.count; }
