@@ -496,9 +496,10 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
                 const jsonString = decodeURIComponent(atob(base64Data));
                 const shareData = JSON.parse(jsonString);
 
-                if (shareData && shareData.lyrics) {
+                // Security: Validate external input types and bounds before assignment
+                if (shareData && typeof shareData === 'object' && typeof shareData.lyrics === 'string' && shareData.lyrics.length <= 100000) {
                     input.value = shareData.lyrics;
-                    if (shareData.name) {
+                    if (typeof shareData.name === 'string' && shareData.name.length <= 500) {
                         songNameInput.value = shareData.name;
                     }
                     // Poista hash URL:sta siistiyden vuoksi
