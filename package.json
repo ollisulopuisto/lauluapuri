@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "bump-version": "node scripts/bump-version.js",
-    "test": "echo \"Ei testejä määritelty refaktoroinnin jälkeen\" && exit 0"
+    "test": "vitest run"
   },
   "devDependencies": {
     "@vitest/ui": "^5.1.0",
