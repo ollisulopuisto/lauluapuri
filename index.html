@@ -473,7 +473,7 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
         // --- RIIMIHAKU: avataan vain käyttäjän pyynnöstä (nappi tai Ctrl/Cmd+J), ei automaattisia ehdotuksia ---
         const pop = document.getElementById('rhyme-pop');
         const TIERS = { full: 'Täydet', assonance: 'Vokaalisointu', alliteration: 'Alkusointu' };
-        const rs = { tier: 'full', breadth: 2, rhythm: false, shown: 10, hit: null, results: [] };
+        const rs = { tier: 'full', breadth: 2, rhythm: false, closest: false, shown: 10, hit: null, results: [] };
         let wordList = null;
         const loadWords = async () => {
             if (wordList) return wordList;
@@ -511,7 +511,7 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
             pop.innerHTML = `
                 <div class="rp-row"><span class="rp-title">${esc(rs.hit.word)}</span>${btn('\u00d7', 'data-close aria-label="Sulje"')}</div>
                 <div class="rp-row">${Object.entries(TIERS).map(([k, v]) => btn(v, `data-tier="${k}" aria-pressed="${rs.tier === k}"`)).join('')}</div>
-                <div class="rp-row"><span class="rp-note">Tavuja:</span>${[1, 2, 3].map((n) => btn(n, `data-breadth="${n}" aria-pressed="${rs.breadth === n}" aria-label="${n} tavua"`)).join('')}${btn('Rytmi', `data-rhythm aria-pressed="${rs.rhythm}"`)}</div>
+                <div class="rp-row"><span class="rp-note">Tavuja:</span>${[1, 2, 3].map((n) => btn(n, `data-breadth="${n}" aria-pressed="${rs.breadth === n}" aria-label="${n} tavua"`)).join('')}${btn('Rytmi', `data-rhythm aria-pressed="${rs.rhythm}"`)}${btn('Lähin', `data-closest aria-pressed="${rs.closest}" title="Järjestä: vähiten kirjaimia muuttava ensin"`)}</div>
                 ${status ? `<div class="rp-note">${status}</div>` : `<div class="rp-chips">${chips || '<span class="rp-note">Ei osumia. Kokeile vähemmän tavuja.</span>'}${rs.results.length > rs.shown ? btn('Lisää', 'data-more') : ''}</div>`}`;
             placePopup();
         }
@@ -537,6 +537,7 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
             if (b.dataset.tier) { rs.tier = b.dataset.tier; rs.shown = 10; }
             else if (b.dataset.breadth) { rs.breadth = +b.dataset.breadth; rs.shown = 10; }
             else if ('rhythm' in b.dataset) { rs.rhythm = !rs.rhythm; rs.shown = 10; }
+            else if ('closest' in b.dataset) { rs.closest = !rs.closest; rs.shown = 10; }
             else if ('more' in b.dataset) rs.shown += 10;
             else if (b.dataset.pick) {
                 const { start, end, word } = rs.hit;
