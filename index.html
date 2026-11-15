@@ -287,6 +287,7 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
     <script type="module">
         // --- LOGIIKKA ---
         import { syllabify, isLong, getStress, getRhymeScore, wordAt, prepareWords, findRhymes } from './rhyme.js';
+        import { readDrafts, saveDraft } from './drafts.js';
         // --- UI ---
         const input = document.getElementById('lyrics-input');
         const output = document.getElementById('analysis-output');
@@ -574,34 +575,27 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
 
 
         // --- KIRJOITA / MUOKKAA: kirjoita ensin ilman arvostelua, muokkaa sitten ---
-        const DRAFTS_KEY = 'lauluapuri-drafts';
         const draftSelect = document.getElementById('draft-history');
         const writeCount = document.getElementById('write-count');
-        const getDrafts = () => JSON.parse(localStorage.getItem(DRAFTS_KEY) || '[]');
         const renderDrafts = () => {
-            draftSelect.innerHTML = '<option value="">Aiemmat luonnokset</option>' + getDrafts().map((d, i) =>
+            draftSelect.innerHTML = '<option value="">Aiemmat luonnokset</option>' + readDrafts(localStorage).map((d, i) =>
                 `<option value="${i}">${esc(new Date(d.t).toLocaleString('fi-FI', { dateStyle: 'short', timeStyle: 'short' }))} ${esc(d.text.split('\n').find((l) => l.trim() && !l.startsWith('#')) || '').slice(0, 30)}</option>`).join('');
         };
         function setMode(write) {
             const wasWriting = document.body.classList.contains('write-mode');
-            if (wasWriting && !write) { // jokainen luonnos säilyy
-                const text = input.value, drafts = getDrafts();
-                if (text.trim() && (!drafts.length || drafts[0].text !== text)) {
-                    localStorage.setItem(DRAFTS_KEY, JSON.stringify([{ t: Date.now(), text }, ...drafts].slice(0, 50)));
-                }
-            }
+            if (wasWriting && !write) saveDraft(localStorage, input.value); // viimeiset 50 luonnosta säilyvät
             document.body.classList.toggle('write-mode', write);
             document.getElementById('mode-write').setAttribute('aria-pressed', write);
             document.getElementById('mode-edit').setAttribute('aria-pressed', !write);
-            localStorage.setItem('lauluapuri-mode', write ? 'write' : 'edit');
+            try { localStorage.setItem('lauluapuri-mode', write ? 'write' : 'edit'); } catch { /* quota: the mode still switches */ }
             pop.hidden = true; renderDrafts(); update(); input.focus();
         }
         document.getElementById('mode-write').addEventListener('click', () => setMode(true));
         document.getElementById('mode-edit').addEventListener('click', () => setMode(false));
         draftSelect.addEventListener('change', () => {
-            const d = getDrafts()[draftSelect.value];
+            const d = readDrafts(localStorage)[draftSelect.value];
             if (d && (!input.value.trim() || input.value === d.text || confirm('Korvataanko nykyinen teksti tällä luonnoksella? Nykyinen tallennetaan versioihin.'))) {
-                if (input.value.trim() && input.value !== d.text) localStorage.setItem(DRAFTS_KEY, JSON.stringify([{ t: Date.now(), text: input.value }, ...getDrafts()].slice(0, 50)));
+                if (input.value !== d.text) saveDraft(localStorage, input.value);
                 input.value = d.text; update(); renderDrafts();
             }
             draftSelect.value = '';
