@@ -1,0 +1,41 @@
+name: Deploy prototypes to GitHub Pages
+
+# Temporary: publishes main at the root plus the three prototype PR branches under /a/ /b/ /c/.
+on:
+  push:
+    branches: ["proto-pages"]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/configure-pages@v6
+      - name: Assemble site
+        run: |
+          mkdir _site
+          git archive origin/main index.html package.json | tar -x -C _site
+          for p in a:feat/rhyme-finder b:feat/write-edit-modes c:feat/rhyme-closest; do
+            d="_site/${p%%:*}"; mkdir "$d"
+            git archive "origin/${p#*:}" index.html rhyme.js sanalista.txt package.json | tar -x -C "$d"
+            sed -i "s|<body>|<body><div style=\"position:fixed;left:6px;bottom:6px;z-index:3000;background:#e03131;color:#fff;font:700 11px sans-serif;padding:2px 8px;border-radius:10px;pointer-events:none\">PROTOTYPE ${p%%:*}</div>|" "$d/index.html"
+          done
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: '_site'
+      - id: deployment
+        uses: actions/deploy-pages@v5
