@@ -27,3 +27,15 @@ test('write mode still hides the rhyme UI', () => {
 test('the zen button is hidden while the strip is open, so it cannot cover the strip', () => {
   expect(html).toMatch(/body\.rhyme-strip:has\(#rhyme-pop:not\(\[hidden\]\)\) #zen-toggle\s*\{[^}]*display:\s*none/)
 })
+
+test('syllable selection: touch-action none and in-place updates during a drag', () => {
+  expect(html).toMatch(/\.rp-syls \{[^}]*touch-action:\s*none/)
+  // A re-render under the dragging finger would drop the pointer: the drag handler must not call renderPopup.
+  const drag = /function dragSyllables[\s\S]*?\n        \}\n/.exec(html)[0]
+  expect(drag).not.toContain('renderPopup')
+  expect(drag).toContain('findRhymes')
+})
+
+test('the strip no longer has a separate syllable-count row', () => {
+  expect(html).toMatch(/stripMode \? '' : `<span class="rp-note">Tavuja:/)
+})

@@ -174,10 +174,12 @@
         body.rhyme-strip:has(#rhyme-pop:not([hidden])) #zen-toggle { display: none; }
         body.rhyme-strip #rhyme-pop .rp-row { margin-bottom: 6px; }
         body.rhyme-strip #rhyme-pop .rp-bar { display: flex; gap: 6px; align-items: center; }
-        body.rhyme-strip #rhyme-pop .rp-bar .rp-title { flex: none; max-width: 28%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         body.rhyme-strip #rhyme-pop .rp-chips { flex: 1; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
         body.rhyme-strip #rhyme-pop .rp-chips button { flex: none; min-height: 40px; }
         body.rhyme-strip #rhyme-pop .rp-bar > button { flex: none; min-height: 40px; }
+        body.rhyme-strip #rhyme-pop .rp-syls { display: flex; flex: none; max-width: 40%; overflow: hidden; touch-action: none; user-select: none; border: 1px solid var(--border-color); border-radius: 10px; }
+        body.rhyme-strip #rhyme-pop .rp-syls button { min-width: 0; min-height: 40px; padding: 0 8px; border: 0; border-radius: 0; font-weight: 700; }
+        body.rhyme-strip #rhyme-pop .rp-syls button.sel { background: var(--action-color); color: #fff; }
         #rhyme-mirror { position: absolute; visibility: hidden; white-space: pre-wrap; overflow-wrap: break-word; top: 0; left: 0; }
 
 
@@ -544,18 +546,45 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
             pop.style.left = left + 'px'; pop.style.top = top + 'px';
         }
 
-        function renderPopup(status) {
-            const btn = (label, attrs = '') => `<button type="button" ${attrs}>${label}</button>`;
+        const btn = (label, attrs = '') => `<button type="button" ${attrs}>${label}</button>`;
+        const chipsHtml = (status) => {
+            if (status) return `<span class="rp-note">${status}</span>`;
             const chips = rs.results.slice(0, rs.shown).map((r) => btn(esc(r.word), `data-pick="${esc(r.word)}"`)).join('');
-            const list = status ? `<span class="rp-note">${status}</span>` : `${chips || '<span class="rp-note">Ei osumia. Kokeile vähemmän tavuja.</span>'}${rs.results.length > rs.shown ? btn('Lisää', 'data-more') : ''}`;
+            return `${chips || '<span class="rp-note">Ei osumia. Kokeile vähemmän tavuja.</span>'}${rs.results.length > rs.shown ? btn('Lisää', 'data-more') : ''}`;
+        };
+        // The word split into syllables; the last `breadth` ones are the part a rhyme must match.
+        const sylsHtml = () => {
+            const syls = syllabify(rs.hit.word);
+            return syls.map((t, i) => btn(esc(t), `data-syl="${i}" class="${i >= syls.length - rs.breadth ? 'sel' : ''}"`)).join('');
+        };
+
+        function renderPopup(status) {
             const filters = `
                 <div class="rp-row">${Object.entries(TIERS).map(([k, v]) => btn(v, `data-tier="${k}" aria-pressed="${rs.tier === k}"`)).join('')}</div>
-                <div class="rp-row"><span class="rp-note">Tavuja:</span>${[1, 2, 3].map((n) => btn(n, `data-breadth="${n}" aria-pressed="${rs.breadth === n}" aria-label="${n} tavua"`)).join('')}${btn('Rytmi', `data-rhythm aria-pressed="${rs.rhythm}"`)}</div>`;
+                <div class="rp-row">${stripMode ? '' : `<span class="rp-note">Tavuja:</span>${[1, 2, 3].map((n) => btn(n, `data-breadth="${n}" aria-pressed="${rs.breadth === n}" aria-label="${n} tavua"`)).join('')}`}${btn('Rytmi', `data-rhythm aria-pressed="${rs.rhythm}"`)}</div>`;
             pop.innerHTML = stripMode
-                ? `${rs.filters ? filters : ''}<div class="rp-bar"><span class="rp-title">${esc(rs.hit.word)}</span><div class="rp-chips">${list}</div>${btn('Suodata', `data-filters aria-pressed="${rs.filters}"`)}${btn('\u00d7', 'data-close aria-label="Sulje"')}</div>`
-                : `<div class="rp-row"><span class="rp-title">${esc(rs.hit.word)}</span>${btn('\u00d7', 'data-close aria-label="Sulje"')}</div>${filters}<div class="rp-chips">${list}</div>`;
+                ? `${rs.filters ? filters : ''}<div class="rp-bar"><div class="rp-syls" aria-label="Täsmäävät tavut">${sylsHtml()}</div><div class="rp-chips">${chipsHtml(status)}</div>${btn('Suodata', `data-filters aria-pressed="${rs.filters}"`)}${btn('\u00d7', 'data-close aria-label="Sulje"')}</div>`
+                : `<div class="rp-row"><span class="rp-title">${esc(rs.hit.word)}</span>${btn('\u00d7', 'data-close aria-label="Sulje"')}</div>${filters}<div class="rp-chips">${chipsHtml(status)}</div>`;
             placePopup();
         }
+
+        // Pressing or dragging across the syllables picks how many of the last ones must match.
+        // Updated in place: replacing the buttons under a dragging finger would end the drag.
+        function dragSyllables(down) {
+            const syls = pop.querySelector('.rp-syls'), count = syllabify(rs.hit.word).length;
+            const pick = (e) => {
+                const el = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-syl]');
+                const breadth = el && syls.contains(el) ? count - +el.dataset.syl : rs.breadth;
+                if (breadth === rs.breadth) return;
+                rs.breadth = breadth; rs.shown = 10; rs.results = findRhymes(wordList, rs.hit.word, rs);
+                syls.querySelectorAll('[data-syl]').forEach((b) => b.classList.toggle('sel', +b.dataset.syl >= count - breadth));
+                pop.querySelector('.rp-chips').innerHTML = chipsHtml();
+            };
+            pick(down);
+            const stop = () => { document.removeEventListener('pointermove', pick); document.removeEventListener('pointerup', stop); document.removeEventListener('pointercancel', stop); };
+            document.addEventListener('pointermove', pick); document.addEventListener('pointerup', stop); document.addEventListener('pointercancel', stop);
+        }
+        pop.addEventListener('pointerdown', (e) => { if (wordList && e.target.closest('[data-syl]')) dragSyllables(e); });
 
         async function openRhymes() {
             const hit = wordAt(input.value, input.selectionStart);
@@ -573,7 +602,7 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
 
         pop.addEventListener('mousedown', (e) => e.preventDefault());
         pop.addEventListener('click', (e) => {
-            const b = e.target.closest('button'); if (!b) return;
+            const b = e.target.closest('button'); if (!b || 'syl' in b.dataset) return;
             if ('close' in b.dataset) return closeRhymes();
             if ('filters' in b.dataset) rs.filters = !rs.filters;
             else if (b.dataset.tier) { rs.tier = b.dataset.tier; rs.shown = 10; }
