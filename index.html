@@ -170,6 +170,18 @@
         #rhyme-pop .rp-note { color: var(--muted-color); }
         #rhyme-mirror { position: absolute; visibility: hidden; white-space: pre-wrap; overflow-wrap: break-word; top: 0; left: 0; }
 
+
+        /* --- KIRJOITA / MUOKKAA --- */
+        .mode-switch { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; flex-shrink: 0; }
+        .mode-switch button { flex: 1; min-height: 44px; border: 2px solid var(--border-color); border-radius: 12px; background: var(--card-bg); color: var(--text-color); font-weight: 700; font-size: 1rem; cursor: pointer; }
+        .mode-switch button[aria-pressed="true"] { background: var(--action-color); border-color: var(--action-color); color: #fff; }
+        .mode-switch select { flex: 1; min-height: 44px; border-radius: 12px; border: 2px solid var(--border-color); background: var(--input-bg); color: var(--text-color); }
+        #write-count { color: var(--muted-color); font-size: 0.8rem; white-space: nowrap; }
+        body.write-mode #analysis-output, body.write-mode #btn-rhyme, body.write-mode #rhyme-pop, body.write-mode #draft-history, body.write-mode .archive-section { display: none; }
+        body.write-mode .editor-grid { grid-template-columns: 1fr; grid-template-rows: 1fr; }
+        body.write-mode .editor-side { border: none; }
+        body:not(.write-mode) #write-count { display: none; }
+
         /* MOBIILI-KOHTAISET TYYLIT */
         @media (max-width: 850px) {
             .container { padding: 5px; }
@@ -235,6 +247,12 @@
             </div>
         </div>
 
+        <div class="mode-switch">
+            <button type="button" id="mode-write" aria-pressed="false">Kirjoita</button>
+            <button type="button" id="mode-edit" aria-pressed="true">Muokkaa</button>
+            <select id="draft-history" aria-label="Aiemmat luonnokset"></select>
+            <span id="write-count" aria-live="polite"></span>
+        </div>
         <main class="editor-grid">
             <div class="editor-side">
                 <textarea id="lyrics-input" placeholder="# Säkeistö
@@ -285,6 +303,8 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
         function update() {
             const lyrics = input.value;
             localStorage.setItem('lauluapuri-draft', lyrics);
+            writeCount.textContent = lyrics.split('\n').filter((l) => l.trim() && !l.startsWith('#')).length + ' riviä';
+            if (document.body.classList.contains('write-mode')) return;
             if (!lyrics.trim()) { output.innerHTML = '<div class="empty-state">Aloita kirjoittamalla tekstiä editoriin.</div>'; return; }
 
             const lines = lyrics.split('\n');
@@ -552,6 +572,41 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !pop.hidden) closeRhymes(); });
         document.addEventListener('pointerdown', (e) => { if (!pop.hidden && !pop.contains(e.target) && e.target.id !== 'btn-rhyme' && e.target !== input) pop.hidden = true; });
 
+
+        // --- KIRJOITA / MUOKKAA: kirjoita ensin ilman arvostelua, muokkaa sitten ---
+        const DRAFTS_KEY = 'lauluapuri-drafts';
+        const draftSelect = document.getElementById('draft-history');
+        const writeCount = document.getElementById('write-count');
+        const getDrafts = () => JSON.parse(localStorage.getItem(DRAFTS_KEY) || '[]');
+        const renderDrafts = () => {
+            draftSelect.innerHTML = '<option value="">Aiemmat luonnokset</option>' + getDrafts().map((d, i) =>
+                `<option value="${i}">${esc(new Date(d.t).toLocaleString('fi-FI', { dateStyle: 'short', timeStyle: 'short' }))} ${esc(d.text.split('\n').find((l) => l.trim() && !l.startsWith('#')) || '').slice(0, 30)}</option>`).join('');
+        };
+        function setMode(write) {
+            const wasWriting = document.body.classList.contains('write-mode');
+            if (wasWriting && !write) { // jokainen luonnos säilyy
+                const text = input.value, drafts = getDrafts();
+                if (text.trim() && (!drafts.length || drafts[0].text !== text)) {
+                    localStorage.setItem(DRAFTS_KEY, JSON.stringify([{ t: Date.now(), text }, ...drafts].slice(0, 50)));
+                }
+            }
+            document.body.classList.toggle('write-mode', write);
+            document.getElementById('mode-write').setAttribute('aria-pressed', write);
+            document.getElementById('mode-edit').setAttribute('aria-pressed', !write);
+            localStorage.setItem('lauluapuri-mode', write ? 'write' : 'edit');
+            pop.hidden = true; renderDrafts(); update(); input.focus();
+        }
+        document.getElementById('mode-write').addEventListener('click', () => setMode(true));
+        document.getElementById('mode-edit').addEventListener('click', () => setMode(false));
+        draftSelect.addEventListener('change', () => {
+            const d = getDrafts()[draftSelect.value];
+            if (d && (!input.value.trim() || input.value === d.text || confirm('Korvataanko nykyinen teksti tällä luonnoksella? Nykyinen tallennetaan versioihin.'))) {
+                if (input.value.trim() && input.value !== d.text) localStorage.setItem(DRAFTS_KEY, JSON.stringify([{ t: Date.now(), text: input.value }, ...getDrafts()].slice(0, 50)));
+                input.value = d.text; update(); renderDrafts();
+            }
+            draftSelect.value = '';
+        });
+
         window.loadSong = loadFromArchive; window.deleteSong = deleteFromArchive;
         input.addEventListener('input', update);
         btnSave.addEventListener('click', saveToArchive);
@@ -588,7 +643,7 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
             document.body.classList.add('zen-mode'); // Varmistetaan että pysyy päällä clikin jälkeen
         }
         
-        update(); renderArchive();
+        renderArchive(); setMode(localStorage.getItem('lauluapuri-mode') === 'write');
         fetch('./package.json').then(r => r.json()).then(pkg => { document.getElementById('version-display').innerText = 'v' + pkg.version; }).catch(() => {});
     </script>
 </body>
