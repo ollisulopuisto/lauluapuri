@@ -45,3 +45,11 @@ test('the first syllable index uses the same syllables as syllabify', () => {
 test('a start exactly between two breaks snaps to the earlier one', () => {
   expect(snapSelection('kala', 1, 3)).toMatchObject({ start: 0, breadth: 2 }) // ka|la, offset 1 is equidistant
 })
+
+test('inside mode starts at the syllable that holds the caret, not at the nearer break', () => {
+  // offset 2 is inside "ran": the nearer break is 3, but the caret is in the first syllable
+  expect(snapSelection(text, ranStart + 2, ranStart + 8, true)).toMatchObject({ start: ranStart, end: ranStart + 8, breadth: 3 })
+  // offset 5 is inside "nal", the nearer break is 6
+  expect(snapSelection(text, ranStart + 5, ranStart + 8, true)).toMatchObject({ start: ranStart + 3, end: ranStart + 8, breadth: 2 })
+  expect(snapSelection(text, ranStart + 7, ranStart + 8, true)).toMatchObject({ start: ranStart + 6, breadth: 1 })
+})
