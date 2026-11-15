@@ -630,7 +630,9 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
             if (touching || document.activeElement !== input || document.body.classList.contains('write-mode')) return;
             const snap = snapSelection(input.value, input.selectionStart, input.selectionEnd);
             if (!snap) return;
-            if (snap.start !== input.selectionStart || snap.end !== input.selectionEnd) input.setSelectionRange(snap.start, snap.end);
+            // Keeping the direction matters: a drag that runs leftward anchors at the end, and a forward
+            // selection here would flip the anchor and collapse the selection under the mouse.
+            if (snap.start !== input.selectionStart || snap.end !== input.selectionEnd) input.setSelectionRange(snap.start, snap.end, input.selectionDirection);
             if (pop.hidden || rs.hit.start !== snap.wordStart || rs.breadth !== snap.breadth) openRhymes(snap);
         };
         // A mouse or pen snaps at once, also while dragging, so the strip follows live; touch waits.
@@ -638,7 +640,21 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
         document.addEventListener('pointerdown', (e) => { finePointer = e.pointerType !== 'touch'; }, true);
         const settle = () => { clearTimeout(snapTimer); snapTimer = setTimeout(snapToSyllables, 250); };
         document.addEventListener('selectionchange', () => (finePointer ? snapToSyllables() : settle()));
-        document.addEventListener('pointerup', () => { if (finePointer) snapToSyllables(); });
+        // A double-click selects the whole word natively; select from the syllable that was clicked instead.
+        // The first click of the pair leaves the caret where it landed.
+        let clickCaret = null;
+        document.addEventListener('pointerup', () => {
+            if (input.selectionStart === input.selectionEnd) clickCaret = input.selectionStart;
+            if (finePointer) snapToSyllables();
+        });
+        input.addEventListener('dblclick', () => {
+            if (!finePointer || clickCaret === null || document.body.classList.contains('write-mode')) return;
+            const word = wordAt(input.value, clickCaret);
+            const snap = word && snapSelection(input.value, clickCaret, word.end, true);
+            if (!snap) return;
+            input.setSelectionRange(snap.start, snap.end);
+            openRhymes(snap);
+        });
         document.addEventListener('touchstart', () => { touching = true; }, { passive: true });
         for (const type of ['touchend', 'touchcancel']) document.addEventListener(type, () => { touching = false; settle(); }, { passive: true });
         document.addEventListener('pointerdown', (e) => { if (!pop.hidden && !pop.contains(e.target) && e.target.id !== 'btn-rhyme' && e.target !== input) pop.hidden = true; });

@@ -80,13 +80,16 @@ export function findRhymes(words, word, { tier = 'full', breadth = 2, rhythm = f
 
 // Napautus tavurajoihin: valinnan alku siirtyy lähimmälle tavuvälille ja loppu sanan loppuun,
 // koska riimi täsmää aina sanan lopusta. Palauttaa null, jos valinta on tyhjä tai ylittää sanan.
-export function snapSelection(text, start, end) {
+// Kun inside on tosi, alku on se tavu, jonka sisällä se on (kaksoisnapsautus), ei lähin raja.
+export function snapSelection(text, start, end, inside = false) {
     if (start >= end) return null
     const hit = wordAt(text, start)
     if (!hit || end > hit.end) return null
     const syls = syllabify(hit.word)
     const breaks = syls.map((_, i) => syls.slice(0, i).join('').length) // jokaisen tavun alku
     const at = start - hit.start
-    const i = breaks.reduce((best, b, j) => Math.abs(b - at) < Math.abs(breaks[best] - at) ? j : best, 0)
+    const i = inside
+        ? breaks.reduce((best, b, j) => b <= at ? j : best, 0)
+        : breaks.reduce((best, b, j) => Math.abs(b - at) < Math.abs(breaks[best] - at) ? j : best, 0)
     return { start: hit.start + breaks[i], end: hit.end, word: hit.word, wordStart: hit.start, breadth: syls.length - i }
 }

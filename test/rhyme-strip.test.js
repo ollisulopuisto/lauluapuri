@@ -47,6 +47,6 @@ test('selection snapping waits for the selection to settle and for fingers to li
 
 test('a mouse or pen snaps immediately, only touch waits', () => {
   expect(html).toMatch(/finePointer = e\.pointerType !== 'touch'/)
-  expect(html).toMatch(/addEventListener\('pointerup', \(\) => \{ if \(finePointer\) snapToSyllables\(\); \}\)/)
+  expect(html).toMatch(/addEventListener\('pointerup', \(\) => \{[^}]*if \(finePointer\) snapToSyllables\(\);\s*\}\)/)
   expect(html).toContain('if (!wordList) renderPopup(')
 })
