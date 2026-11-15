@@ -591,7 +591,7 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
             if (!hit) return;
             if (snap) rs.breadth = snap.breadth;
             rs.hit = hit; rs.shown = 10; pop.hidden = false;
-            renderPopup('Ladataan sanalistaa...');
+            if (!wordList) renderPopup('Ladataan sanalistaa...');
             try { await loadWords(); } catch { renderPopup('Sanalistan lataus epäonnistui.'); return; }
             refreshRhymes();
         }
@@ -633,8 +633,12 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
             if (snap.start !== input.selectionStart || snap.end !== input.selectionEnd) input.setSelectionRange(snap.start, snap.end);
             if (pop.hidden || rs.hit.start !== snap.wordStart || rs.breadth !== snap.breadth) openRhymes(snap);
         };
+        // A mouse or pen snaps at once, also while dragging, so the strip follows live; touch waits.
+        let finePointer = true;
+        document.addEventListener('pointerdown', (e) => { finePointer = e.pointerType !== 'touch'; }, true);
         const settle = () => { clearTimeout(snapTimer); snapTimer = setTimeout(snapToSyllables, 250); };
-        document.addEventListener('selectionchange', settle);
+        document.addEventListener('selectionchange', () => (finePointer ? snapToSyllables() : settle()));
+        document.addEventListener('pointerup', () => { if (finePointer) snapToSyllables(); });
         document.addEventListener('touchstart', () => { touching = true; }, { passive: true });
         for (const type of ['touchend', 'touchcancel']) document.addEventListener(type, () => { touching = false; settle(); }, { passive: true });
         document.addEventListener('pointerdown', (e) => { if (!pop.hidden && !pop.contains(e.target) && e.target.id !== 'btn-rhyme' && e.target !== input) pop.hidden = true; });

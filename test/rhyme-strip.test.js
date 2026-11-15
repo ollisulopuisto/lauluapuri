@@ -41,6 +41,12 @@ test('the strip no longer has a separate syllable-count row', () => {
 })
 
 test('selection snapping waits for the selection to settle and for fingers to lift', () => {
-  expect(html).toMatch(/addEventListener\('selectionchange', settle\)/)
+  expect(html).toMatch(/addEventListener\('selectionchange', \(\) => \(finePointer \? snapToSyllables\(\) : settle\(\)\)\)/)
   expect(html).toMatch(/const snapToSyllables = \(\) => \{\s*if \(touching \|\|/)
+})
+
+test('a mouse or pen snaps immediately, only touch waits', () => {
+  expect(html).toMatch(/finePointer = e\.pointerType !== 'touch'/)
+  expect(html).toMatch(/addEventListener\('pointerup', \(\) => \{ if \(finePointer\) snapToSyllables\(\); \}\)/)
+  expect(html).toContain('if (!wordList) renderPopup(')
 })
