@@ -39,3 +39,8 @@ test('syllable selection: touch-action none and in-place updates during a drag',
 test('the strip no longer has a separate syllable-count row', () => {
   expect(html).toMatch(/stripMode \? '' : `<span class="rp-note">Tavuja:/)
 })
+
+test('selection snapping waits for the selection to settle and for fingers to lift', () => {
+  expect(html).toMatch(/addEventListener\('selectionchange', settle\)/)
+  expect(html).toMatch(/const snapToSyllables = \(\) => \{\s*if \(touching \|\|/)
+})

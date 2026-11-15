@@ -77,3 +77,16 @@ export function findRhymes(words, word, { tier = 'full', breadth = 2, rhythm = f
         .map((w) => ({ word: w.word, diff: Math.abs(w.syls.length - target.syls.length) }))
         .sort((a, b) => a.diff - b.diff || a.word.length - b.word.length || a.word.localeCompare(b.word, 'fi'))
 }
+
+// Napautus tavurajoihin: valinnan alku siirtyy lähimmälle tavuvälille ja loppu sanan loppuun,
+// koska riimi täsmää aina sanan lopusta. Palauttaa null, jos valinta on tyhjä tai ylittää sanan.
+export function snapSelection(text, start, end) {
+    if (start >= end) return null
+    const hit = wordAt(text, start)
+    if (!hit || end > hit.end) return null
+    const syls = syllabify(hit.word)
+    const breaks = syls.map((_, i) => syls.slice(0, i).join('').length) // jokaisen tavun alku
+    const at = start - hit.start
+    const i = breaks.reduce((best, b, j) => Math.abs(b - at) < Math.abs(breaks[best] - at) ? j : best, 0)
+    return { start: hit.start + breaks[i], end: hit.end, word: hit.word, wordStart: hit.start, breadth: syls.length - i }
+}

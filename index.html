@@ -298,7 +298,7 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
 
     <script type="module">
         // --- LOGIIKKA ---
-        import { syllabify, isLong, getStress, getRhymeScore, wordAt, prepareWords, findRhymes } from './rhyme.js';
+        import { syllabify, isLong, getStress, getRhymeScore, wordAt, snapSelection, prepareWords, findRhymes } from './rhyme.js';
         import { readDrafts, saveDraft } from './drafts.js';
         // --- UI ---
         const input = document.getElementById('lyrics-input');
@@ -586,9 +586,10 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
         }
         pop.addEventListener('pointerdown', (e) => { if (wordList && e.target.closest('[data-syl]')) dragSyllables(e); });
 
-        async function openRhymes() {
-            const hit = wordAt(input.value, input.selectionStart);
+        async function openRhymes(snap = null) {
+            const hit = snap ? { start: snap.wordStart, end: snap.end, word: snap.word } : wordAt(input.value, input.selectionStart);
             if (!hit) return;
+            if (snap) rs.breadth = snap.breadth;
             rs.hit = hit; rs.shown = 10; pop.hidden = false;
             renderPopup('Ladataan sanalistaa...');
             try { await loadWords(); } catch { renderPopup('Sanalistan lataus epäonnistui.'); return; }
@@ -618,9 +619,24 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
             }
             refreshRhymes();
         });
-        document.getElementById('btn-rhyme').addEventListener('click', openRhymes);
+        document.getElementById('btn-rhyme').addEventListener('click', () => openRhymes());
         input.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key === 'j') { e.preventDefault(); openRhymes(); } });
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !pop.hidden) closeRhymes(); });
+
+        // A selection inside one word snaps to syllable breaks and the strip follows it. Waits until the
+        // selection has settled and no finger is down, so it does not fight the native selection handles.
+        let touching = false, snapTimer;
+        const snapToSyllables = () => {
+            if (touching || document.activeElement !== input || document.body.classList.contains('write-mode')) return;
+            const snap = snapSelection(input.value, input.selectionStart, input.selectionEnd);
+            if (!snap) return;
+            if (snap.start !== input.selectionStart || snap.end !== input.selectionEnd) input.setSelectionRange(snap.start, snap.end);
+            if (pop.hidden || rs.hit.start !== snap.wordStart || rs.breadth !== snap.breadth) openRhymes(snap);
+        };
+        const settle = () => { clearTimeout(snapTimer); snapTimer = setTimeout(snapToSyllables, 250); };
+        document.addEventListener('selectionchange', settle);
+        document.addEventListener('touchstart', () => { touching = true; }, { passive: true });
+        for (const type of ['touchend', 'touchcancel']) document.addEventListener(type, () => { touching = false; settle(); }, { passive: true });
         document.addEventListener('pointerdown', (e) => { if (!pop.hidden && !pop.contains(e.target) && e.target.id !== 'btn-rhyme' && e.target !== input) pop.hidden = true; });
 
 
