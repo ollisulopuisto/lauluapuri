@@ -156,6 +156,20 @@
 
         footer { text-align: center; padding: 10px; color: var(--muted-color); font-size: 0.7rem; flex-shrink: 0; }
 
+
+        /* --- RIIMIHAKU --- */
+        #btn-rhyme { position: absolute; top: 10px; right: 56px; min-width: 44px; min-height: 36px; padding: 0 12px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; color: var(--action-color); font-weight: 700; cursor: pointer; }
+        #btn-rhyme:focus-visible, #rhyme-pop button:focus-visible { outline: 2px solid var(--action-color); }
+        #rhyme-pop { position: absolute; z-index: 50; width: min(320px, calc(100% - 16px)); background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.25); padding: 10px; font-size: 0.9rem; }
+        #rhyme-pop[hidden] { display: none; }
+        #rhyme-pop .rp-row { display: flex; gap: 6px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+        #rhyme-pop .rp-title { font-weight: 800; flex: 1; }
+        #rhyme-pop button { min-height: 44px; min-width: 44px; padding: 0 12px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--accent-bg); color: var(--text-color); font-size: 0.95rem; cursor: pointer; }
+        #rhyme-pop button[aria-pressed="true"] { background: var(--action-color); color: #fff; border-color: var(--action-color); }
+        #rhyme-pop .rp-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+        #rhyme-pop .rp-note { color: var(--muted-color); }
+        #rhyme-mirror { position: absolute; visibility: hidden; white-space: pre-wrap; overflow-wrap: break-word; top: 0; left: 0; }
+
         /* MOBIILI-KOHTAISET TYYLIT */
         @media (max-width: 850px) {
             .container { padding: 5px; }
@@ -237,6 +251,8 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
                 <button class="floating-copy" id="btn-copy" title="Kopioi leikepöydälle" aria-label="Kopioi teksti leikepöydälle">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
                 </button>
+                <button id="btn-rhyme" title="Hae riimejä sanalle (Ctrl/Cmd+J)" aria-label="Hae riimejä kursorin kohdalla olevalle sanalle">Riimit</button>
+                <div id="rhyme-pop" role="dialog" aria-label="Riimiehdotukset" hidden></div>
             </div>
             <div id="analysis-output">
                 <div class="empty-state">Aloita kirjoittamalla tekstiä editoriin.</div>
@@ -245,58 +261,14 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
 
         <footer>
             <p>! paino, · sivupaino | — pitkä, ◡ lyhyt</p>
+            <p>Sanalista: <a href="https://kotus.fi/sanakirjat/kielitoimiston-sanakirja/nykysuomen-sana-aineistot/nykysuomen-sanalista/" style="color:inherit">Kotimaisten kielten keskus, Nykysuomen sanalista</a> (LGPL)</p>
             <p id="version-display" style="opacity: 0.6; margin-top: 4px;"></p>
         </footer>
     </div>
 
     <script type="module">
         // --- LOGIIKKA ---
-        const VOWELS = 'aeiouyäö';
-        const DIPHTHONGS = new Set(['ai', 'ei', 'oi', 'ui', 'yi', 'äi', 'öi', 'au', 'eu', 'iu', 'ou', 'ie', 'uo', 'yö', 'ey', 'iy', 'äy', 'öy']);
-        const isVowel = (c) => c ? VOWELS.includes(c.toLowerCase()) : false;
-
-        // Optimized syllabification: direct indexing without allocating char arrays,
-        // O(1) diphthong set lookups, and state tracking to avoid repetitive vowel scans.
-        function syllabify(word) {
-            if (!word) return [];
-            const clean = word.toLowerCase().replace(/[^a-zäö]/g, '');
-            const len = clean.length;
-            if (len === 0) return [];
-            const syllables = [];
-            let current = '', currentHasVowel = false;
-            for (let i = 0; i < len; i++) {
-                const ch = clean[i];
-                current += ch;
-                const chIsVowel = isVowel(ch);
-                if (chIsVowel) currentHasVowel = true;
-                const next = i + 1 < len ? clean[i + 1] : '';
-                if (!next) break;
-                if (chIsVowel) {
-                    if (isVowel(next) && ch !== next && !DIPHTHONGS.has(ch + next)) {
-                        syllables.push(current); current = ''; currentHasVowel = false;
-                    }
-                } else if (isVowel(next) && current.length > 1 && currentHasVowel) {
-                    syllables.push(current.slice(0, -1)); current = ch; currentHasVowel = false;
-                }
-            }
-            if (current) syllables.push(current);
-            return syllables;
-        }
-
-        const isLong = (s) => { const v = s.toLowerCase().split('').filter(isVowel); return v.length > 0 && (!isVowel(s.slice(-1)) || v.length >= 2); };
-        const getStress = (syls) => syls.map((_, i) => i === 0 ? 'primary' : (i % 2 === 0 ? 'secondary' : 'none'));
-        const getRhymePart = (s) => { const idx = s.split('').findIndex(isVowel); return idx === -1 ? s : s.slice(idx); };
-        const getRhymeScore = (syls1, syls2) => {
-            if (!syls1.length || !syls2.length) return 0;
-            let score = 0; const len = Math.min(syls1.length, syls2.length);
-            for (let i = 1; i <= len; i++) {
-                const s1 = syls1[syls1.length - i], s2 = syls2[syls2.length - i];
-                if (i < len) { if (s1 === s2) score++; else { if (score > 0) return score; if (i === 1 && getRhymePart(s1) === getRhymePart(s2)) score++; else return 0; }
-                } else { if (getRhymePart(s1) === getRhymePart(s2)) score++; else return score; }
-            }
-            return score;
-        };
-
+        import { syllabify, isLong, getStress, getRhymeScore, wordAt, prepareWords, findRhymes } from './rhyme.js';
         // --- UI ---
         const input = document.getElementById('lyrics-input');
         const output = document.getElementById('analysis-output');
@@ -496,6 +468,89 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
                 ? '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>'
                 : '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>';
         });
+
+
+        // --- RIIMIHAKU: avataan vain käyttäjän pyynnöstä (nappi tai Ctrl/Cmd+J), ei automaattisia ehdotuksia ---
+        const pop = document.getElementById('rhyme-pop');
+        const TIERS = { full: 'Täydet', assonance: 'Vokaalisointu', alliteration: 'Alkusointu' };
+        const rs = { tier: 'full', breadth: 2, rhythm: false, shown: 10, hit: null, results: [] };
+        let wordList = null;
+        const loadWords = async () => {
+            if (wordList) return wordList;
+            const r = await fetch('./sanalista.txt');
+            if (!r.ok) throw new Error(r.status);
+            return (wordList = prepareWords((await r.text()).split('\n').filter(Boolean)));
+        };
+
+        // Sanan paikka tekstialueella piilotetun peilin avulla, jotta ponnahdus tulee sanan viereen.
+        function wordPosition(start) {
+            const cs = getComputedStyle(input);
+            const mirror = document.createElement('div');
+            mirror.id = 'rhyme-mirror';
+            ['fontFamily','fontSize','fontWeight','lineHeight','letterSpacing','padding','borderWidth','boxSizing','width'].forEach((p) => { mirror.style[p] = cs[p]; });
+            mirror.textContent = input.value.slice(0, start);
+            const mark = document.createElement('span'); mark.textContent = '\u200b';
+            mirror.appendChild(mark);
+            input.parentElement.appendChild(mirror);
+            const pos = { left: mark.offsetLeft, top: mark.offsetTop - input.scrollTop, line: parseFloat(cs.lineHeight) || 24 };
+            mirror.remove();
+            return pos;
+        }
+
+        function placePopup() {
+            const pos = wordPosition(rs.hit.start), box = input.parentElement;
+            const left = Math.max(8, Math.min(pos.left, box.clientWidth - pop.offsetWidth - 8));
+            const below = pos.top + pos.line + 6;
+            const top = below + pop.offsetHeight > box.clientHeight ? Math.max(8, pos.top - pop.offsetHeight - 6) : below;
+            pop.style.left = left + 'px'; pop.style.top = top + 'px';
+        }
+
+        function renderPopup(status) {
+            const btn = (label, attrs = '') => `<button type="button" ${attrs}>${label}</button>`;
+            const chips = rs.results.slice(0, rs.shown).map((r) => btn(esc(r.word), `data-pick="${esc(r.word)}"`)).join('');
+            pop.innerHTML = `
+                <div class="rp-row"><span class="rp-title">${esc(rs.hit.word)}</span>${btn('\u00d7', 'data-close aria-label="Sulje"')}</div>
+                <div class="rp-row">${Object.entries(TIERS).map(([k, v]) => btn(v, `data-tier="${k}" aria-pressed="${rs.tier === k}"`)).join('')}</div>
+                <div class="rp-row"><span class="rp-note">Tavuja:</span>${[1, 2, 3].map((n) => btn(n, `data-breadth="${n}" aria-pressed="${rs.breadth === n}" aria-label="${n} tavua"`)).join('')}${btn('Rytmi', `data-rhythm aria-pressed="${rs.rhythm}"`)}</div>
+                ${status ? `<div class="rp-note">${status}</div>` : `<div class="rp-chips">${chips || '<span class="rp-note">Ei osumia. Kokeile vähemmän tavuja.</span>'}${rs.results.length > rs.shown ? btn('Lisää', 'data-more') : ''}</div>`}`;
+            placePopup();
+        }
+
+        async function openRhymes() {
+            const hit = wordAt(input.value, input.selectionStart);
+            if (!hit) return;
+            rs.hit = hit; rs.shown = 10; pop.hidden = false;
+            renderPopup('Ladataan sanalistaa...');
+            try { await loadWords(); } catch { renderPopup('Sanalistan lataus epäonnistui.'); return; }
+            refreshRhymes();
+        }
+        function refreshRhymes() {
+            rs.results = findRhymes(wordList, rs.hit.word, rs);
+            renderPopup();
+        }
+        const closeRhymes = () => { pop.hidden = true; input.focus(); };
+
+        pop.addEventListener('mousedown', (e) => e.preventDefault());
+        pop.addEventListener('click', (e) => {
+            const b = e.target.closest('button'); if (!b) return;
+            if ('close' in b.dataset) return closeRhymes();
+            if (b.dataset.tier) { rs.tier = b.dataset.tier; rs.shown = 10; }
+            else if (b.dataset.breadth) { rs.breadth = +b.dataset.breadth; rs.shown = 10; }
+            else if ('rhythm' in b.dataset) { rs.rhythm = !rs.rhythm; rs.shown = 10; }
+            else if ('more' in b.dataset) rs.shown += 10;
+            else if (b.dataset.pick) {
+                const { start, end, word } = rs.hit;
+                const pick = word[0] === word[0].toUpperCase() ? b.dataset.pick[0].toUpperCase() + b.dataset.pick.slice(1) : b.dataset.pick;
+                input.setRangeText(pick, start, end, 'end');
+                input.dispatchEvent(new Event('input'));
+                return closeRhymes();
+            }
+            refreshRhymes();
+        });
+        document.getElementById('btn-rhyme').addEventListener('click', openRhymes);
+        input.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key === 'j') { e.preventDefault(); openRhymes(); } });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !pop.hidden) closeRhymes(); });
+        document.addEventListener('pointerdown', (e) => { if (!pop.hidden && !pop.contains(e.target) && e.target.id !== 'btn-rhyme' && e.target !== input) pop.hidden = true; });
 
         window.loadSong = loadFromArchive; window.deleteSong = deleteFromArchive;
         input.addEventListener('input', update);

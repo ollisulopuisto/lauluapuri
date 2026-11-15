@@ -25,3 +25,9 @@ Jos haluat muokata koodia ja säilyttää versioinnin:
 2. Tee muutokset `index.html`-tiedostoon.
 3. git commit -m "Viesti" -> Husky päivittää version (huomaa, että muutokset on lisättävä committiin, jotta versio päivittyy arkistoon).
 4. `git push` -> GitHub Actions julkaisee uuden version.
+
+## Riimihaku
+
+Napauta sanaa tekstissä ja paina **Riimit** (tai Ctrl/Cmd+J). Ponnahdus ehdottaa täysiä riimejä, vokaalisointua tai alkusointua; napautus korvaa sanan. Haku käynnistyy vain pyynnöstä.
+
+Sanalista `sanalista.txt` on Kotimaisten kielten tutkimuskeskuksen Nykysuomen sanalista (versio 1, 2006, LGPL), suodatettuna perusmuotoisiin pieniin sanoihin (91 531 sanaa). Se ladataan vasta ensimmäisellä haulla.
