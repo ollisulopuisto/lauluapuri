@@ -82,3 +82,20 @@ describe('rhythm filter and sorting', () => {
     expect(diffs).toEqual([...diffs].sort((a, b) => a - b))
   })
 })
+
+describe('closest-edit ranking (backtrack)', () => {
+  const sorted = (word, opts) => rhymes(word, { tier: 'full', breadth: 1, closest: true, ...opts })
+  test('ranks rhymes by how few letters change from the written word', () => {
+    // kannalla -> rannalla is one letter; kala/kana are far
+    expect(sorted('kannalla').slice(0, 2).sort()).toEqual(['rannalla', 'sannalla'])
+  })
+  test('without closest, the same query is ordered by syllable closeness first', () => {
+    const plain = rhymes('kannalla', { tier: 'full', breadth: 1 })
+    expect(plain.indexOf('kala')).toBeGreaterThan(plain.indexOf('rannalla'))
+    expect(sorted('kannalla').indexOf('rannalla')).toBeLessThan(sorted('kannalla').indexOf('pannulla'))
+  })
+  test('ties keep a stable alphabetical order', () => {
+    const r = sorted('kannalla')
+    expect(r.indexOf('rannalla')).toBeLessThan(r.indexOf('sannalla'))
+  })
+})

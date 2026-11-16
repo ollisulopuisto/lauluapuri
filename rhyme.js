@@ -68,13 +68,24 @@ const keyOf = { // laajuus b = montako viimeistä tavua (tai sanan alkukirjainta
     alliteration: (w, b) => w.word.slice(0, b),
 }
 
-export function findRhymes(words, word, { tier = 'full', breadth = 2, rhythm = false } = {}) {
+// Muokkausetäisyys (Levenshtein): montako kirjainta pitää vaihtaa, lisätä tai poistaa.
+const editDistance = (a, b) => {
+    let prev = Array.from({ length: b.length + 1 }, (_, j) => j)
+    for (let i = 1; i <= a.length; i++) {
+        const cur = [i]
+        for (let j = 1; j <= b.length; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1))
+        prev = cur
+    }
+    return prev[b.length]
+}
+
+export function findRhymes(words, word, { tier = 'full', breadth = 2, rhythm = false, closest = false } = {}) {
     const target = prepareWords([word.toLowerCase()])[0]
     const key = keyOf[tier](target, breadth)
     if (!key) return []
     return words
         .filter((w) => w.word !== target.word && keyOf[tier](w, breadth) === key && (!rhythm || w.pattern === target.pattern))
-        .map((w) => ({ word: w.word, diff: Math.abs(w.syls.length - target.syls.length) }))
+        .map((w) => ({ word: w.word, diff: closest ? editDistance(w.word, target.word) : Math.abs(w.syls.length - target.syls.length) }))
         .sort((a, b) => a.diff - b.diff || a.word.length - b.word.length || a.word.localeCompare(b.word, 'fi'))
 }
 
