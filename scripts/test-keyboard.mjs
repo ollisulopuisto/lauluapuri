@@ -52,6 +52,21 @@ try {
   await select(11)
   await input.evaluate(el => el.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', shiftKey: true, isComposing: true, bubbles: true, cancelable: true })))
   assert.deepEqual(await range(), [11, 11], 'IME event does not invoke syllable stepping')
+  await input.evaluate(el => el.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', shiftKey: true, keyCode: 229, bubbles: true, cancelable: true })))
+  assert.deepEqual(await range(), [11, 11], 'legacy IME keyCode 229 does not invoke syllable stepping')
+  // Touch handles can resume after a hardware key without a pointerdown event.
+  await input.press('ArrowLeft')
+  await input.evaluate(el => {
+    el.dispatchEvent(new Event('touchstart', { bubbles: true }))
+    el.setSelectionRange(7, 10)
+    el.dispatchEvent(new Event('touchend', { bubbles: true }))
+  })
+  await page.waitForFunction(() => {
+    const el = document.querySelector('#lyrics-input')
+    return el.selectionStart === 6 && el.selectionEnd === 11
+  }, null, { timeout: 2000 })
+  assert.deepEqual(await range(), [6, 11], 'touch selection snaps again after hardware navigation without pointerdown')
+  await select(11)
   await input.press('Shift+ArrowLeft')
   await page.waitForFunction(() => document.querySelectorAll('[data-syl].sel').length === 1)
   if (process.env.CAPTURE_PATH) await page.screenshot({ path: process.env.CAPTURE_PATH, fullPage: true })

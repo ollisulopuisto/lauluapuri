@@ -672,7 +672,7 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
             input.setSelectionRange(snap.start, snap.end);
             openRhymes(snap);
         });
-        document.addEventListener('touchstart', () => { touching = true; }, { passive: true });
+        document.addEventListener('touchstart', () => { touching = true; nativeKeyboardSelection = false; }, { passive: true });
         for (const type of ['touchend', 'touchcancel']) document.addEventListener(type, () => { touching = false; settle(); }, { passive: true });
         document.addEventListener('pointerdown', (e) => { if (!pop.hidden && !pop.contains(e.target) && e.target.id !== 'btn-rhyme' && e.target !== input) pop.hidden = true; });
 

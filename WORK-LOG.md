@@ -17,3 +17,9 @@ hardware keyboard checks have not been run here.
 
 Do not merge without resolving the publication hold: main automatically deploys
 the GitHub Pages site, and this task was approved as PR-only with no publication.
+
+Independent review follow-up: touchstart now clears the native-keyboard bypass
+even when a platform touch handle does not emit pointerdown. The real-browser
+regression failed before the reset and passes after it; keyCode 229 is also
+covered independently of isComposing. Browser CI remains a follow-up: this repo
+currently deploys only on main and uses default CodeQL checks for PRs.
