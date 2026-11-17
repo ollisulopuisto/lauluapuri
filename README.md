@@ -31,3 +31,15 @@ Jos haluat muokata koodia ja säilyttää versioinnin:
 Napauta sanaa tekstissä ja paina **Riimit** (tai Ctrl/Cmd+J). Ponnahdus ehdottaa täysiä riimejä, vokaalisointua tai alkusointua; napautus korvaa sanan. Haku käynnistyy vain pyynnöstä.
 
 Sanalista `sanalista.txt` on Kotimaisten kielten tutkimuskeskuksen Nykysuomen sanalista (versio 1, 2006, LGPL), suodatettuna perusmuotoisiin pieniin sanoihin (91 531 sanaa). Se ladataan vasta ensimmäisellä haulla.
+
+### Tavuvalinta näppäimistöllä
+
+Muokkaa-tilassa Shift+vasen valitsee sanan viimeisen tavun ja kasvattaa riimiosaa
+seuraavilla painalluksilla tavu kerrallaan. Shift+oikea kutistaa valintaa; viimeinen
+askel palauttaa kursorin sanan loppuun. Koko sanan jälkeen Shift+vasen jatkaa
+normaalia tekstivalintaa sanan ulkopuolelle. Muut muunnosnäppäimet, pystynuolet ja
+Kirjoita-tila säilyttävät selaimen tekstivalinnan. Hiiren ja kosketuksen toiminta ei muutu.
+
+Kehitystestit: `npm ci && npm test`. Oikean selaimen näppäimistötesti:
+`npx playwright install chromium && npm run test:keyboard`.
+Olemassa olevaa Chromea voi käyttää asettamalla ympäristömuuttujan `CHROME_PATH`.

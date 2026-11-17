@@ -104,3 +104,25 @@ export function snapSelection(text, start, end, inside = false) {
         : breaks.reduce((best, b, j) => Math.abs(b - at) < Math.abs(breaks[best] - at) ? j : best, 0)
     return { start: hit.start + breaks[i], end: hit.end, word: hit.word, wordStart: hit.start, breadth: syls.length - i }
 }
+
+// Shift-nuolien tavuaskel: 'left' kasvattaa riimiosaa tavun verran, 'right' kutistaa.
+// Palauttaa uuden valinnan; null jättää näppäimen natiiviksi; { passthrough: true }
+// kun valinta on jo koko sana ja kasvatus jatkuu natiivisti sanan alun yli.
+export function stepSyllableSelection(text, start, end, dir) {
+    const hit = wordAt(text, start)
+    if (!hit || end > hit.end) return null
+    const syls = syllabify(hit.word)
+    const breaks = syls.map((_, i) => syls.slice(0, i).join('').length)
+    const at = start - hit.start
+    if (start === end) { // pelkkä kursori: vasen aloittaa viimeisestä tavusta
+        if (dir === 'right' || at === 0) return null
+        return { start: hit.start + breaks[breaks.length - 1], end: hit.end, word: hit.word, wordStart: hit.start, breadth: 1 }
+    }
+    const i = breaks.reduce((best, b, j) => b <= at ? j : best, 0)
+    if (dir === 'left') {
+        if (i === 0) return { passthrough: true, start: hit.start, end: hit.end }
+        return { start: hit.start + breaks[i - 1], end: hit.end, word: hit.word, wordStart: hit.start, breadth: syls.length - i + 1 }
+    }
+    if (i >= breaks.length - 1) return { start: hit.end, end: hit.end, word: hit.word, wordStart: hit.start, breadth: 0 } // kutistuu kursoriksi
+    return { start: hit.start + breaks[i + 1], end: hit.end, word: hit.word, wordStart: hit.start, breadth: syls.length - i - 1 }
+}

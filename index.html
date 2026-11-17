@@ -298,7 +298,7 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
 
     <script type="module">
         // --- LOGIIKKA ---
-        import { syllabify, isLong, getStress, getRhymeScore, wordAt, snapSelection, prepareWords, findRhymes } from './rhyme.js';
+        import { syllabify, isLong, getStress, getRhymeScore, wordAt, snapSelection, stepSyllableSelection, prepareWords, findRhymes } from './rhyme.js';
         import { readDrafts, saveDraft } from './drafts.js';
         // --- UI ---
         const input = document.getElementById('lyrics-input');
@@ -626,9 +626,25 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
 
         // A selection inside one word snaps to syllable breaks and the strip follows it. Waits until the
         // selection has settled and no finger is down, so it does not fight the native selection handles.
-        let touching = false, snapTimer;
+        let touching = false, snapTimer, nativeKeyboardSelection = false;
+        input.addEventListener('keydown', (e) => {
+            if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key)) return;
+            // Native keyboard selections must not be re-snapped by selectionchange.
+            nativeKeyboardSelection = true;
+            clearTimeout(snapTimer);
+            if (!e.shiftKey || e.altKey || e.ctrlKey || e.metaKey || e.isComposing || e.keyCode === 229 || document.body.classList.contains('write-mode')) return;
+            if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+            const snap = stepSyllableSelection(input.value, input.selectionStart, input.selectionEnd, e.key === 'ArrowLeft' ? 'left' : 'right');
+            if (!snap) return;
+            input.setSelectionRange(snap.start, snap.end, 'backward');
+            if (snap.passthrough) return;
+            e.preventDefault();
+            nativeKeyboardSelection = false;
+            if (snap.breadth) openRhymes(snap);
+            else pop.hidden = true;
+        });
         const snapToSyllables = () => {
-            if (touching || document.activeElement !== input || document.body.classList.contains('write-mode')) return;
+            if (touching || nativeKeyboardSelection || document.activeElement !== input || document.body.classList.contains('write-mode')) return;
             const snap = snapSelection(input.value, input.selectionStart, input.selectionEnd);
             if (!snap) return;
             // Keeping the direction matters: a drag that runs leftward anchors at the end, and a forward
@@ -638,7 +654,7 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
         };
         // A mouse or pen snaps at once, also while dragging, so the strip follows live; touch waits.
         let finePointer = true;
-        document.addEventListener('pointerdown', (e) => { finePointer = e.pointerType !== 'touch'; }, true);
+        document.addEventListener('pointerdown', (e) => { finePointer = e.pointerType !== 'touch'; nativeKeyboardSelection = false; }, true);
         const settle = () => { clearTimeout(snapTimer); snapTimer = setTimeout(snapToSyllables, 250); };
         document.addEventListener('selectionchange', () => (finePointer ? snapToSyllables() : settle()));
         // A double-click selects the whole word natively; select from the syllable that was clicked instead.
@@ -656,7 +672,7 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
             input.setSelectionRange(snap.start, snap.end);
             openRhymes(snap);
         });
-        document.addEventListener('touchstart', () => { touching = true; }, { passive: true });
+        document.addEventListener('touchstart', () => { touching = true; nativeKeyboardSelection = false; }, { passive: true });
         for (const type of ['touchend', 'touchcancel']) document.addEventListener(type, () => { touching = false; settle(); }, { passive: true });
         document.addEventListener('pointerdown', (e) => { if (!pop.hidden && !pop.contains(e.target) && e.target.id !== 'btn-rhyme' && e.target !== input) pop.hidden = true; });
 
