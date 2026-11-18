@@ -43,3 +43,9 @@ real Chromium workflow covers caret-opens-strip, syllable tap and clear,
 shift+arrow adjustment without moving the caret, native selection and IME
 passthrough, and quiet write mode; it passes. Desktop and mobile rendering were
 inspected in screenshots. Native Safari/iOS touch checks have not been run here.
+
+Devin review fixes: #song-name gets min-width: 0 so the bottom icon bar fits a
+320px viewport; save/download/share buttons carry persistent Finnish aria-labels
+(labels are icon-only on mobile); the share handler swaps only the label text so
+the icon survives the copied state. Verified with real renders at 320px and
+390px plus the unit and browser workflows.

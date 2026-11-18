@@ -202,6 +202,7 @@
             .container { padding: 5px; }
             .toolbar { order: 6; margin-bottom: 0; margin-top: 8px; }
             .toolbar-main { flex-direction: row; align-items: center; gap: 8px; }
+            .toolbar-main #song-name { min-width: 0; }
             .toolbar-actions { display: flex; gap: 8px; width: auto; }
             .toolbar-actions .btn { padding: 10px 12px; border-radius: 10px; box-shadow: none; }
             .toolbar-actions .btn .lbl { display: none; }
@@ -259,9 +260,9 @@
             <div class="toolbar-main">
                 <input type="text" id="song-name" placeholder="Laulun nimi...">
                 <div class="toolbar-actions">
-                    <button class="btn btn-save" id="btn-save"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg><span class="lbl">Tallenna</span></button>
-                    <button class="btn btn-download" id="btn-download"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg><span class="lbl">Lataa .txt</span></button>
-                    <button class="btn btn-share" id="btn-share"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span class="lbl">Jaa linkki</span></button>
+                    <button class="btn btn-save" id="btn-save" aria-label="Tallenna"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg><span class="lbl">Tallenna</span></button>
+                    <button class="btn btn-download" id="btn-download" aria-label="Lataa .txt"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg><span class="lbl">Lataa .txt</span></button>
+                    <button class="btn btn-share" id="btn-share" aria-label="Jaa linkki"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span class="lbl">Jaa linkki</span></button>
                 </div>
             </div>
             <div class="archive-section">
@@ -490,11 +491,12 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
 
             btnShare.disabled = true;
             navigator.clipboard.writeText(url.toString()).then(() => {
-                const originalText = btnShare.innerText;
-                btnShare.innerText = 'Kopioitu!';
+                const shareLabel = btnShare.querySelector('.lbl');
+                const originalText = shareLabel.textContent;
+                shareLabel.textContent = 'Kopioitu!';
                 btnShare.style.background = 'var(--success-color)';
                 setTimeout(() => {
-                    btnShare.innerText = originalText;
+                    shareLabel.textContent = originalText;
                     btnShare.style.background = '';
                     btnShare.disabled = false;
                 }, 2000);
