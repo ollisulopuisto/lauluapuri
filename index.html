@@ -615,6 +615,7 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
             const hit = wordAt(input.value, input.selectionStart);
             if (!hit) return;
             rs.hit = hit; rs.shown = 10; rs.breadth = Math.min(rs.breadth, syllabify(hit.word).length);
+            if (!stripMode && rs.breadth === 0) rs.breadth = Math.min(2, syllabify(hit.word).length); // popupilla ei ole tavunappeja
             pop.hidden = false;
             if (!wordList) renderPopup('Ladataan sanalistaa...');
             try { await loadWords(); } catch { renderPopup('Sanalistan lataus epäonnistui.'); return; }
