@@ -1,5 +1,6 @@
-// The rhyme suggestions are a slim strip on the bottom edge by default, so they
-// never cover the text being written; ?popup keeps the old floating popup.
+// The rhyme suggestions are a slim two-row strip: desktop header of the analysis
+// panel, mobile fixed to the bottom edge; ?popup keeps the old floating popup.
+// Tapping a word opens its syllables; selection stays plain native editing.
 import { readFileSync } from 'node:fs'
 import { test, expect } from 'vitest'
 
@@ -9,11 +10,38 @@ test('strip is the default layout and ?popup opts out', () => {
   expect(html).toContain("const stripMode = !location.search.includes('popup')")
 })
 
-test('the strip is fixed to the bottom edge, above the keyboard offset', () => {
+test('desktop: the strip is a static header of the analysis panel', () => {
   const rule = /body\.rhyme-strip #rhyme-pop \{[^}]*\}/.exec(html)
   expect(rule, 'no strip rule').toBeTruthy()
+  expect(rule[0]).toMatch(/position:\s*static/)
+  expect(html).toContain('<div class="panel-side">')
+  expect(html).toMatch(/<div class="panel-side">\s*<div id="rhyme-pop"/)
+})
+
+test('mobile: the strip is fixed to the bottom edge, above the keyboard offset', () => {
+  const rule = /@media \(max-width: 850px\) \{[\s\S]*?body\.rhyme-strip #rhyme-pop \{[^}]*\}/.exec(html)
+  expect(rule, 'no mobile strip rule').toBeTruthy()
   expect(rule[0]).toMatch(/position:\s*fixed/)
   expect(rule[0]).toMatch(/bottom:\s*var\(--kb/)
+})
+
+test('the strip is two rows: syllables first, rhymes scroll horizontally below', () => {
+  expect(html).toContain('</div><div class="rp-chips">${chipsHtml(status)}</div>')
+  const chips = /body\.rhyme-strip #rhyme-pop \.rp-chips \{[^}]*\}/.exec(html)
+  expect(chips[0]).toMatch(/overflow-x:\s*auto/)
+  expect(chips[0]).toMatch(/flex-wrap:\s*nowrap/)
+})
+
+test('no rhyme part is picked until a syllable is tapped', () => {
+  expect(html).toContain('Napauta tavua, josta riimi alkaa')
+  expect(html).toMatch(/rs = \{ tier: 'full', breadth: 0/)
+})
+
+test('the strip follows the caret, not the selection', () => {
+  expect(html).toContain("document.addEventListener('selectionchange', followCaret)")
+  expect(html).not.toContain('snapSelection')
+  expect(html).not.toContain('stepSyllableSelection')
+  expect(html).not.toContain("input.addEventListener('dblclick'")
 })
 
 test('the strip leaves room under the page so the last lines stay reachable', () => {
@@ -40,13 +68,10 @@ test('the strip no longer has a separate syllable-count row', () => {
   expect(html).toMatch(/stripMode \? '' : `<span class="rp-note">Tavuja:/)
 })
 
-test('selection snapping waits for the selection to settle and for fingers to lift', () => {
-  expect(html).toMatch(/addEventListener\('selectionchange', \(\) => \(finePointer \? snapToSyllables\(\) : settle\(\)\)\)/)
-  expect(html).toMatch(/const snapToSyllables = \(\) => \{\s*if \(touching \|\|/)
-})
-
-test('a mouse or pen snaps immediately, only touch waits', () => {
-  expect(html).toMatch(/finePointer = e\.pointerType !== 'touch'/)
-  expect(html).toMatch(/addEventListener\('pointerup', \(\) => \{[^}]*if \(finePointer\) snapToSyllables\(\);\s*\}\)/)
-  expect(html).toContain('if (!wordList) renderPopup(')
+test('shift+arrows adjust the rhyme part without touching the selection', () => {
+  const keys = /input\.addEventListener\('keydown', \(e\) => \{\s*if \(!stripMode[\s\S]*?\n        \}\);/.exec(html)
+  expect(keys, 'no shift-arrow handler').toBeTruthy()
+  expect(keys[0]).toContain('e.preventDefault()')
+  expect(keys[0]).toContain("e.key === 'ArrowLeft' ? 1 : -1")
+  expect(keys[0]).not.toContain('setSelectionRange')
 })

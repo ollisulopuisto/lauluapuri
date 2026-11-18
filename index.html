@@ -83,6 +83,9 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
+        .btn .lbl { display: inline; }
+        .btn svg.ic { display: none; }
+
         .btn-save { background: var(--success-color); color: white; }
         .btn-download { background: var(--action-color); color: white; }
         .btn-share { background: var(--meta-color); color: white; }
@@ -121,6 +124,8 @@
         }
 
         .editor-side { position: relative; height: 100%; border-right: 1px solid var(--border-color); }
+        .panel-side { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+        #analysis-output { padding: 20px; overflow-y: auto; flex: 1; }
         #lyrics-input {
             width: 100%; height: 100%; border: none; padding: 20px; font-size: 1.1rem;
             line-height: 1.7; resize: none; outline: none; font-family: "Charter", "Georgia", serif;
@@ -137,7 +142,6 @@
             transition: all 0.2s; display: flex; align-items: center; justify-content: center; z-index: 10;
         }
 
-        #analysis-output { padding: 20px; overflow-y: auto; height: 100%; }
         .section-container { margin-bottom: 30px; border-left: 3px solid var(--border-color); padding-left: 15px; }
         .section-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; padding-bottom: 4px; border-bottom: 1px solid var(--border-color); }
         .section-name { font-size: 0.85rem; font-weight: 800; color: var(--muted-color); text-transform: uppercase; }
@@ -168,16 +172,15 @@
         #rhyme-pop button[aria-pressed="true"] { background: var(--action-color); color: #fff; border-color: var(--action-color); }
         #rhyme-pop .rp-chips { display: flex; flex-wrap: wrap; gap: 6px; }
         #rhyme-pop .rp-note { color: var(--muted-color); }
-        /* Default layout: a slim strip on the bottom edge (above the keyboard); ?popup keeps the old floating popup. */
-        body.rhyme-strip #rhyme-pop { position: fixed; left: 0; right: 0; bottom: var(--kb, 0px); width: auto; border-radius: 14px 14px 0 0; padding: 6px 8px; font-size: 0.9rem; }
-        body.rhyme-strip:has(#rhyme-pop:not([hidden])) { padding-bottom: 72px; }
-        body.rhyme-strip:has(#rhyme-pop:not([hidden])) #zen-toggle { display: none; }
+        /* Default layout: a slim strip. Desktop: header of the right analysis panel.
+           Mobile: fixed to the bottom edge (above the keyboard). ?popup keeps the old floating popup. */
+        body.rhyme-strip #rhyme-pop { position: static; width: auto; border-radius: 0; box-shadow: none; border: none; border-bottom: 1px solid var(--border-color); padding: 8px; font-size: 0.9rem; flex-shrink: 0; }
         body.rhyme-strip #rhyme-pop .rp-row { margin-bottom: 6px; }
         body.rhyme-strip #rhyme-pop .rp-bar { display: flex; gap: 6px; align-items: center; }
-        body.rhyme-strip #rhyme-pop .rp-chips { flex: 1; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+        body.rhyme-strip #rhyme-pop .rp-chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-top: 6px; }
         body.rhyme-strip #rhyme-pop .rp-chips button { flex: none; min-height: 40px; }
         body.rhyme-strip #rhyme-pop .rp-bar > button { flex: none; min-height: 40px; }
-        body.rhyme-strip #rhyme-pop .rp-syls { display: flex; flex: none; max-width: 40%; overflow: hidden; touch-action: none; user-select: none; border: 1px solid var(--border-color); border-radius: 10px; }
+        body.rhyme-strip #rhyme-pop .rp-syls { display: flex; flex: 1; min-width: 0; overflow: hidden; touch-action: none; user-select: none; border: 1px solid var(--border-color); border-radius: 10px; }
         body.rhyme-strip #rhyme-pop .rp-syls button { min-width: 0; min-height: 40px; padding: 0 8px; border: 0; border-radius: 0; font-weight: 700; }
         body.rhyme-strip #rhyme-pop .rp-syls button.sel { background: var(--action-color); color: #fff; }
         #rhyme-mirror { position: absolute; visibility: hidden; white-space: pre-wrap; overflow-wrap: break-word; top: 0; left: 0; }
@@ -194,21 +197,29 @@
         body.write-mode .editor-side { border: none; }
         body:not(.write-mode) #write-count { display: none; }
 
-        /* MOBIILI-KOHTAISET TYYLIT */
+        /* MOBIILI-KOHTAISET TYYLIT: toiminnot alas kuvakepalkkiin, editori ensin */
         @media (max-width: 850px) {
             .container { padding: 5px; }
-            .toolbar-main { flex-direction: column; align-items: stretch; }
-            .toolbar-actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+            .toolbar { order: 6; margin-bottom: 0; margin-top: 8px; }
+            .toolbar-main { flex-direction: row; align-items: center; gap: 8px; }
+            .toolbar-actions { display: flex; gap: 8px; width: auto; }
+            .toolbar-actions .btn { padding: 10px 12px; border-radius: 10px; box-shadow: none; }
+            .toolbar-actions .btn .lbl { display: none; }
+            .toolbar-actions .btn svg.ic { display: block; width: 18px; height: 18px; }
+            footer { order: 7; }
             .editor-grid { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; gap: 5px; border-radius: 12px; }
             .editor-side { border-right: none; border-bottom: 1px solid var(--border-color); }
             #lyrics-input { padding: 15px; }
             #analysis-output { padding: 15px; }
+            body.rhyme-strip #rhyme-pop { position: fixed; left: 0; right: 0; bottom: var(--kb, 0px); border: none; border-top: 1px solid var(--border-color); border-radius: 14px 14px 0 0; box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
+            body.rhyme-strip:has(#rhyme-pop:not([hidden])) { padding-bottom: 108px; }
+            body.rhyme-strip:has(#rhyme-pop:not([hidden])) #zen-toggle { display: none; }
 
             /* ZEN-TILAN KYTKIN */
             .mobile-ui-toggle {
                 display: flex;
                 position: fixed;
-                bottom: 20px;
+                bottom: 116px;
                 right: 20px;
                 z-index: 2000;
                 background: var(--action-color);
@@ -248,9 +259,9 @@
             <div class="toolbar-main">
                 <input type="text" id="song-name" placeholder="Laulun nimi...">
                 <div class="toolbar-actions">
-                    <button class="btn btn-save" id="btn-save">Tallenna</button>
-                    <button class="btn btn-download" id="btn-download">Lataa .txt</button>
-                    <button class="btn btn-share" id="btn-share">Jaa linkki</button>
+                    <button class="btn btn-save" id="btn-save"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg><span class="lbl">Tallenna</span></button>
+                    <button class="btn btn-download" id="btn-download"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg><span class="lbl">Lataa .txt</span></button>
+                    <button class="btn btn-share" id="btn-share"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span class="lbl">Jaa linkki</span></button>
                 </div>
             </div>
             <div class="archive-section">
@@ -282,10 +293,12 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
                 </button>
                 <button id="btn-rhyme" title="Hae riimejä sanalle (Ctrl/Cmd+J)" aria-label="Hae riimejä kursorin kohdalla olevalle sanalle">Riimit</button>
-                <div id="rhyme-pop" role="dialog" aria-label="Riimiehdotukset" hidden></div>
             </div>
-            <div id="analysis-output">
-                <div class="empty-state">Aloita kirjoittamalla tekstiä editoriin.</div>
+            <div class="panel-side">
+                <div id="rhyme-pop" role="dialog" aria-label="Riimiehdotukset" hidden></div>
+                <div id="analysis-output">
+                    <div class="empty-state">Aloita kirjoittamalla tekstiä editoriin.</div>
+                </div>
             </div>
         </main>
 
@@ -298,7 +311,7 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
 
     <script type="module">
         // --- LOGIIKKA ---
-        import { syllabify, isLong, getStress, getRhymeScore, wordAt, snapSelection, stepSyllableSelection, prepareWords, findRhymes } from './rhyme.js';
+        import { syllabify, isLong, getStress, getRhymeScore, wordAt, prepareWords, findRhymes } from './rhyme.js';
         import { readDrafts, saveDraft } from './drafts.js';
         // --- UI ---
         const input = document.getElementById('lyrics-input');
@@ -506,7 +519,7 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
         // --- RIIMIHAKU: avataan vain käyttäjän pyynnöstä (nappi tai Ctrl/Cmd+J), ei automaattisia ehdotuksia ---
         const pop = document.getElementById('rhyme-pop');
         const TIERS = { full: 'Täydet', assonance: 'Vokaalisointu', alliteration: 'Alkusointu' };
-        const rs = { tier: 'full', breadth: 2, rhythm: false, filters: false, closest: false, shown: 10, hit: null, results: [] };
+        const rs = { tier: 'full', breadth: 0, rhythm: false, filters: false, closest: false, shown: 10, hit: null, results: [] };
         let wordList = null;
         const loadWords = async () => {
             if (wordList) return wordList;
@@ -532,6 +545,7 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
 
         const stripMode = !location.search.includes('popup');
         document.body.classList.toggle('rhyme-strip', stripMode);
+        if (!stripMode) input.parentElement.appendChild(pop); // vanha ?popup-kellunta editorin päällä
         // The strip sits on the visible bottom edge: above the on-screen keyboard when it is open.
         const vv = window.visualViewport;
         const dockStrip = () => document.body.style.setProperty('--kb', vv ? Math.max(0, innerHeight - vv.height - vv.offsetTop) + 'px' : '0px');
@@ -549,6 +563,7 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
         const btn = (label, attrs = '') => `<button type="button" ${attrs}>${label}</button>`;
         const chipsHtml = (status) => {
             if (status) return `<span class="rp-note">${status}</span>`;
+            if (rs.breadth === 0) return '<span class="rp-note">Napauta tavua, josta riimi alkaa</span>';
             const chips = rs.results.slice(0, rs.shown).map((r) => btn(esc(r.word), `data-pick="${esc(r.word)}"`)).join('');
             return `${chips || '<span class="rp-note">Ei osumia. Kokeile vähemmän tavuja.</span>'}${rs.results.length > rs.shown ? btn('Lisää', 'data-more') : ''}`;
         };
@@ -563,40 +578,50 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
                 <div class="rp-row">${Object.entries(TIERS).map(([k, v]) => btn(v, `data-tier="${k}" aria-pressed="${rs.tier === k}"`)).join('')}</div>
                 <div class="rp-row">${stripMode ? '' : `<span class="rp-note">Tavuja:</span>${[1, 2, 3].map((n) => btn(n, `data-breadth="${n}" aria-pressed="${rs.breadth === n}" aria-label="${n} tavua"`)).join('')}`}${btn('Rytmi', `data-rhythm aria-pressed="${rs.rhythm}"`)}${btn('Lähin', `data-closest aria-pressed="${rs.closest}" title="Järjestä: vähiten kirjaimia muuttava ensin"`)}</div>`;
             pop.innerHTML = stripMode
-                ? `${rs.filters ? filters : ''}<div class="rp-bar"><div class="rp-syls" aria-label="Täsmäävät tavut">${sylsHtml()}</div><div class="rp-chips">${chipsHtml(status)}</div>${btn('Suodata', `data-filters aria-pressed="${rs.filters}"`)}${btn('\u00d7', 'data-close aria-label="Sulje"')}</div>`
+                ? `${rs.filters ? filters : ''}<div class="rp-bar"><div class="rp-syls" aria-label="Täsmäävät tavut">${sylsHtml()}</div>${btn('Suodata', `data-filters aria-pressed="${rs.filters}"`)}${btn('\u00d7', 'data-close aria-label="Sulje"')}</div><div class="rp-chips">${chipsHtml(status)}</div>`
                 : `<div class="rp-row"><span class="rp-title">${esc(rs.hit.word)}</span>${btn('\u00d7', 'data-close aria-label="Sulje"')}</div>${filters}<div class="rp-chips">${chipsHtml(status)}</div>`;
             placePopup();
         }
 
         // Pressing or dragging across the syllables picks how many of the last ones must match.
+        // A plain tap on the leftmost active syllable clears the rhyme part (breadth 0).
         // Updated in place: replacing the buttons under a dragging finger would end the drag.
         function dragSyllables(down) {
             const syls = pop.querySelector('.rp-syls'), count = syllabify(rs.hit.word).length;
-            const pick = (e) => {
-                const el = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-syl]');
-                const breadth = el && syls.contains(el) ? count - +el.dataset.syl : rs.breadth;
+            const breadthBefore = rs.breadth;
+            let moved = false;
+            const apply = (breadth) => {
                 if (breadth === rs.breadth) return;
-                rs.breadth = breadth; rs.shown = 10; rs.results = findRhymes(wordList, rs.hit.word, rs);
+                rs.breadth = breadth; rs.shown = 10; rs.results = breadth > 0 ? findRhymes(wordList, rs.hit.word, rs) : [];
                 syls.querySelectorAll('[data-syl]').forEach((b) => b.classList.toggle('sel', +b.dataset.syl >= count - breadth));
                 pop.querySelector('.rp-chips').innerHTML = chipsHtml();
             };
+            const pick = (e) => {
+                if (e.type === 'pointermove') moved = true;
+                const el = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-syl]');
+                if (el && syls.contains(el)) apply(count - +el.dataset.syl);
+            };
             pick(down);
-            const stop = () => { document.removeEventListener('pointermove', pick); document.removeEventListener('pointerup', stop); document.removeEventListener('pointercancel', stop); };
+            const stop = (e) => {
+                document.removeEventListener('pointermove', pick); document.removeEventListener('pointerup', stop); document.removeEventListener('pointercancel', stop);
+                const el = e.clientX !== undefined ? document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-syl]') : null;
+                if (!moved && el && syls.contains(el) && breadthBefore > 0 && count - +el.dataset.syl === breadthBefore) apply(0);
+            };
             document.addEventListener('pointermove', pick); document.addEventListener('pointerup', stop); document.addEventListener('pointercancel', stop);
         }
         pop.addEventListener('pointerdown', (e) => { if (wordList && e.target.closest('[data-syl]')) dragSyllables(e); });
 
-        async function openRhymes(snap = null) {
-            const hit = snap ? { start: snap.wordStart, end: snap.end, word: snap.word } : wordAt(input.value, input.selectionStart);
+        async function openRhymes() {
+            const hit = wordAt(input.value, input.selectionStart);
             if (!hit) return;
-            if (snap) rs.breadth = snap.breadth;
-            rs.hit = hit; rs.shown = 10; pop.hidden = false;
+            rs.hit = hit; rs.shown = 10; rs.breadth = Math.min(rs.breadth, syllabify(hit.word).length);
+            pop.hidden = false;
             if (!wordList) renderPopup('Ladataan sanalistaa...');
             try { await loadWords(); } catch { renderPopup('Sanalistan lataus epäonnistui.'); return; }
             refreshRhymes();
         }
         function refreshRhymes() {
-            rs.results = findRhymes(wordList, rs.hit.word, rs);
+            rs.results = rs.breadth > 0 ? findRhymes(wordList, rs.hit.word, rs) : [];
             renderPopup();
         }
         const closeRhymes = () => { pop.hidden = true; input.focus(); };
@@ -616,7 +641,10 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
                 const pick = word[0] === word[0].toUpperCase() ? b.dataset.pick[0].toUpperCase() + b.dataset.pick.slice(1) : b.dataset.pick;
                 input.setRangeText(pick, start, end, 'end');
                 input.dispatchEvent(new Event('input'));
-                return closeRhymes();
+                // Keep the strip open on the new word so a follow-up pick is one tap away.
+                rs.hit = { start, end: start + pick.length, word: pick };
+                rs.breadth = Math.min(rs.breadth, syllabify(pick).length); rs.shown = 10;
+                return refreshRhymes();
             }
             refreshRhymes();
         });
@@ -624,56 +652,40 @@ Kivi kaunis kannalla" spellcheck="false"></textarea>
         input.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key === 'j') { e.preventDefault(); openRhymes(); } });
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !pop.hidden) closeRhymes(); });
 
-        // A selection inside one word snaps to syllable breaks and the strip follows it. Waits until the
-        // selection has settled and no finger is down, so it does not fight the native selection handles.
-        let touching = false, snapTimer, nativeKeyboardSelection = false;
-        input.addEventListener('keydown', (e) => {
-            if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key)) return;
-            // Native keyboard selections must not be re-snapped by selectionchange.
-            nativeKeyboardSelection = true;
-            clearTimeout(snapTimer);
-            if (!e.shiftKey || e.altKey || e.ctrlKey || e.metaKey || e.isComposing || e.keyCode === 229 || document.body.classList.contains('write-mode')) return;
-            if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
-            const snap = stepSyllableSelection(input.value, input.selectionStart, input.selectionEnd, e.key === 'ArrowLeft' ? 'left' : 'right');
-            if (!snap) return;
-            input.setSelectionRange(snap.start, snap.end, 'backward');
-            if (snap.passthrough) return;
-            e.preventDefault();
-            nativeKeyboardSelection = false;
-            if (snap.breadth) openRhymes(snap);
-            else pop.hidden = true;
-        });
-        const snapToSyllables = () => {
-            if (touching || nativeKeyboardSelection || document.activeElement !== input || document.body.classList.contains('write-mode')) return;
-            const snap = snapSelection(input.value, input.selectionStart, input.selectionEnd);
-            if (!snap) return;
-            // Keeping the direction matters: a drag that runs leftward anchors at the end, and a forward
-            // selection here would flip the anchor and collapse the selection under the mouse.
-            if (snap.start !== input.selectionStart || snap.end !== input.selectionEnd) input.setSelectionRange(snap.start, snap.end, input.selectionDirection);
-            if (pop.hidden || rs.hit.start !== snap.wordStart || rs.breadth !== snap.breadth) openRhymes(snap);
+        // The strip follows the caret in edit mode: tap a word and its syllables open in the strip.
+        // Text selection stays plain native editing and no longer drives the rhyme search.
+        const caretHit = () => {
+            if (document.activeElement !== input || input.selectionStart !== input.selectionEnd) return null;
+            return wordAt(input.value, input.selectionStart);
         };
-        // A mouse or pen snaps at once, also while dragging, so the strip follows live; touch waits.
-        let finePointer = true;
-        document.addEventListener('pointerdown', (e) => { finePointer = e.pointerType !== 'touch'; nativeKeyboardSelection = false; }, true);
-        const settle = () => { clearTimeout(snapTimer); snapTimer = setTimeout(snapToSyllables, 250); };
-        document.addEventListener('selectionchange', () => (finePointer ? snapToSyllables() : settle()));
-        // A double-click selects the whole word natively; select from the syllable that was clicked instead.
-        // The first click of the pair leaves the caret where it landed.
-        let clickCaret = null;
-        document.addEventListener('pointerup', () => {
-            if (input.selectionStart === input.selectionEnd) clickCaret = input.selectionStart;
-            if (finePointer) snapToSyllables();
+        const followCaret = () => {
+            if (!stripMode || document.body.classList.contains('write-mode')) return;
+            const hit = caretHit();
+            if (!hit) return; // caret outside a word: the strip keeps the previous word
+            if (!pop.hidden && rs.hit && rs.hit.word === hit.word && rs.hit.start === hit.start) return;
+            openRhymes();
+        };
+        document.addEventListener('selectionchange', followCaret);
+        // Shift+Left/Right grows or shrinks the rhyme part one syllable at a time, straight in the
+        // strip, without touching the text. A plain caret is required, so the keys never fight a selection.
+        input.addEventListener('keydown', (e) => {
+            if (!stripMode || document.body.classList.contains('write-mode')) return;
+            if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+            if (!e.shiftKey || e.altKey || e.ctrlKey || e.metaKey || e.isComposing || e.keyCode === 229) return;
+            const hit = caretHit();
+            if (!hit) return;
+            e.preventDefault();
+            const count = syllabify(hit.word).length;
+            rs.breadth = Math.max(0, Math.min(count, rs.breadth + (e.key === 'ArrowLeft' ? 1 : -1)));
+            rs.shown = 10;
+            pop.hidden = false;
+            if (rs.hit && rs.hit.word === hit.word && rs.hit.start === hit.start && wordList) {
+                rs.results = rs.breadth > 0 ? findRhymes(wordList, rs.hit.word, rs) : [];
+                renderPopup();
+            } else {
+                openRhymes();
+            }
         });
-        input.addEventListener('dblclick', () => {
-            if (!finePointer || clickCaret === null || document.body.classList.contains('write-mode')) return;
-            const word = wordAt(input.value, clickCaret);
-            const snap = word && snapSelection(input.value, clickCaret, word.end, true);
-            if (!snap) return;
-            input.setSelectionRange(snap.start, snap.end);
-            openRhymes(snap);
-        });
-        document.addEventListener('touchstart', () => { touching = true; nativeKeyboardSelection = false; }, { passive: true });
-        for (const type of ['touchend', 'touchcancel']) document.addEventListener(type, () => { touching = false; settle(); }, { passive: true });
         document.addEventListener('pointerdown', (e) => { if (!pop.hidden && !pop.contains(e.target) && e.target.id !== 'btn-rhyme' && e.target !== input) pop.hidden = true; });
 
 
