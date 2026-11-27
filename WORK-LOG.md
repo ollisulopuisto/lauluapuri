@@ -1,5 +1,22 @@
 # Work log
 
+## 2026-11-27: rhyme key index (Bolt perf)
+
+`findRhymes` rebuilt every word's rhyme key on every query: 9-25 ms per lookup
+(91 531 words), repeated per keystroke and per strip selection with the same
+settings. Now a WeakMap keyed on the prepared word list caches a `Map<key,
+indices>` per (tier, breadth), built lazily on first use, so a repeat query is
+a lookup plus the sort of the matches: ~0-2 ms steady state in this sandbox
+(assonance b=3: ~24 ms -> <1 ms; full b=1: ~9 ms -> ~2 ms, remaining cost is
+the sort of thousands of matches). First query per setting combination pays
+one index build (~10-20 ms), same order as one old-style query.
+
+Validation: `vitest run` 44/44 pass. Output parity: 480 query results (10
+words x 48 tier/breadth/rhythm/closest combinations) dumped as JSON before and
+after the change, byte-identical. Duplicate check: no open PRs, recent
+rhyme.js history is selection/strip feature work. PR-only per the publication
+hold; no merge, no deploy.
+
 ## 2026-11-17: keyboard syllable selection
 
 Implemented the approved Shift+Left/Right rhyme-tail selection in edit mode.
